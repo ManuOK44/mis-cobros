@@ -291,3 +291,8 @@ body {
 .bottom-nav button { flex: 1; min-height: 44px; padding: 8px 6px; background: #334155; border: 1px solid #475569; border-radius: 10px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
 .bottom-nav button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
 .bottom-nav #save-history { background: #2563eb; border-color: #3b82f6; }
+/* Respaldo para cambiar datos entre instalaciones */
+.data-transfer { display: flex; gap: 8px; margin-top: 8px; }
+.data-transfer button { flex: 1; min-height: 42px; padding: 8px 6px; border: 1px solid #475569; border-radius: 10px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+#export-data { background: #1d4ed8; border-color: #3b82f6; }
+#import-data { background: #334155; }
