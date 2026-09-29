@@ -1,5 +1,6 @@
 const saveHistoryButton = document.getElementById("save-history");
 const backHomeButton = document.getElementById("back-home");
+const clearHistoryButton = document.getElementById("clear-history");
 const cancelButton = document.getElementById("cancel-business");
 
 const totalNegocios = document.getElementById("total-negocios");
@@ -12,6 +13,8 @@ const modal = document.getElementById("business-modal");
 const saveButton = document.getElementById("save-business");
 const paymentsSection = document.querySelector(".payments");
 const imageInput = document.getElementById("business-image");
+const clearCacheButton = document.getElementById("clear-cache");
+const appMessage = document.getElementById("app-message");
 
 let tarjetaEditando = null;
 
@@ -112,17 +115,38 @@ function limpiarFormulario() {
 }
 
 /* ===================== IMAGEN ===================== */
-function obtenerImagen(callback) {
+function optimizarImagen(src) {
+  return new Promise((resolve, reject) => {
+    if (!src) return resolve("");
+    const image = new Image();
+    image.onload = () => {
+      const maxSize = 640;
+      const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.72));
+    };
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+function obtenerImagen() {
+  return new Promise((resolve, reject) => {
   const file = imageInput.files[0];
 
   if (!file) {
-    callback(tarjetaEditando ? tarjetaEditando.querySelector("img").src : "");
-    return;
+      optimizarImagen(tarjetaEditando ? tarjetaEditando.querySelector("img").src : "").then(resolve, reject);
+      return;
   }
 
   const reader = new FileReader();
-  reader.onload = () => callback(reader.result);
+    reader.onload = () => optimizarImagen(reader.result).then(resolve, reject);
+    reader.onerror = reject;
   reader.readAsDataURL(file);
+  });
 }
 
 /* ===================== AGREGAR ===================== */
@@ -133,14 +157,17 @@ addButton.addEventListener("click", () => {
 });
 
 /* ===================== GUARDAR ===================== */
-saveButton.addEventListener("click", () => {
+saveButton.addEventListener("click", async () => {
   const name = document.getElementById("business-name").value;
   const amount = document.getElementById("business-amount").value;
   const day = document.getElementById("business-day").value;
 
   if (!name || !amount || !day) return;
 
-  obtenerImagen((img) => {
+  saveButton.disabled = true;
+  appMessage.textContent = "Guardando…";
+  try {
+    const img = await obtenerImagen();
     if (tarjetaEditando) {
       tarjetaEditando.querySelector("h4").textContent = name;
       tarjetaEditando.querySelector("p").textContent = `${day} • $${amount}`;
@@ -154,7 +181,27 @@ saveButton.addEventListener("click", () => {
     actualizarTotales();
     modal.style.display = "none";
     limpiarFormulario();
-  });
+    appMessage.textContent = "Cambios guardados.";
+  } catch (error) {
+    console.error("No se pudo guardar el negocio:", error);
+    appMessage.textContent = "No se pudo guardar. Borra imágenes antiguas o libera espacio del navegador.";
+  } finally {
+    saveButton.disabled = false;
+  }
+});
+
+clearCacheButton.addEventListener("click", async () => {
+  if (!confirm("¿Borrar los archivos temporales de esta app? Tus negocios y tu historial se conservarán.")) return;
+  try {
+    if ("caches" in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
+    }
+    appMessage.textContent = "Caché de la app borrado. Tus negocios e historial siguen guardados.";
+  } catch (error) {
+    console.error("No se pudo borrar el caché:", error);
+    appMessage.textContent = "El navegador no permitió borrar el caché.";
+  }
 });
 
 /* ===================== CANCELAR ===================== */
@@ -238,6 +285,14 @@ saveHistoryButton.addEventListener("click", () => {
 
   document.querySelector(".payments").style.display = "none";
   document.getElementById("history-view").style.display = "block";
+});
+
+clearHistoryButton.addEventListener("click", () => {
+  if (!confirm("¿Borrar todo el historial semanal? Los negocios actuales se conservarán.")) return;
+
+  localStorage.removeItem("historial");
+  document.getElementById("history-list").innerHTML = '<p class="empty-history">No hay semanas guardadas en el historial.</p>';
+  appMessage.textContent = "Historial borrado. Tus negocios actuales se conservaron.";
 });
 
 /* ===================== VOLVER ===================== */
