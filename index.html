@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mis Cobros</title>
+  <title>Estación</title>
 
   <link rel="stylesheet" href="style.css">
 
@@ -16,8 +16,10 @@
   <div class="app">
 
     <header class="topbar">
-      <h1>Mis Cobros</h1>
+      <h1>Estación</h1>
       <p>Resumen semanal</p>
+      <button id="clear-cache" type="button">Borrar caché</button>
+      <p id="app-message" role="status" aria-live="polite"></p>
     </header>
 
     <section class="summary">
@@ -97,7 +99,10 @@
     <section class="history-view" id="history-view" style="display:none;">
       <div class="section-title">
         <h3>Historial semanal</h3>
-        <button id="back-home">Volver</button>
+        <div class="history-actions">
+          <button id="clear-history" type="button">Borrar historial</button>
+          <button id="back-home">Volver</button>
+        </div>
       </div>
       <div id="history-list"></div>
     </section>
