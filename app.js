@@ -328,3 +328,83 @@ backHomeButton.addEventListener("click", () => {
 
 /* ===================== INIT ===================== */
 cargarEstados();
+/* ===================== RESPALDO Y TRASLADO DE DATOS ===================== */
+const exportDataButton = document.getElementById("export-data");
+const importDataButton = document.getElementById("import-data");
+const importFileInput = document.getElementById("import-file");
+exportDataButton.addEventListener("click", async () => {
+  try {
+    const backup = {
+      app: "Estación",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      negocios: JSON.parse(localStorage.getItem("negocios") || "[]"),
+      historial: JSON.parse(localStorage.getItem("historial") || "[]")
+    };
+    if (!Array.isArray(backup.negocios) || !Array.isArray(backup.historial)) {
+      throw new Error("Los datos guardados no tienen un formato válido.");
+    }
+    const fecha = new Date().toISOString().slice(0, 10);
+    const archivo = new File([JSON.stringify(backup)], `respaldo-estacion-${fecha}.json`, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+      await navigator.share({ files: [archivo], title: "Respaldo de Estación" });
+      appMessage.textContent = "Respaldo listo. Guárdalo en Archivos para importarlo en la otra app.";
+    } else {
+      const url = URL.createObjectURL(archivo);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = archivo.name;
+      enlace.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      appMessage.textContent = "Respaldo descargado. Búscalo en Archivos para importarlo en la otra app.";
+    }
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      console.error("No se pudo exportar el respaldo:", error);
+      appMessage.textContent = "No se pudo crear el respaldo. Inténtalo otra vez.";
+    }
+  }
+});
+importDataButton.addEventListener("click", () => importFileInput.click());
+importFileInput.addEventListener("change", async () => {
+  const archivo = importFileInput.files[0];
+  if (!archivo) return;
+  try {
+    const respaldo = JSON.parse(await archivo.text());
+    const esNegocio = (item) => item && typeof item.nombre === "string" &&
+      (typeof item.monto === "string" || typeof item.monto === "number") &&
+      typeof item.dia === "string" && typeof item.estado === "string" && typeof item.imagen === "string";
+    const esSemana = (semana) => semana && typeof semana.fecha === "string" &&
+      Array.isArray(semana.negocios) && semana.negocios.every(esNegocio);
+    if (!respaldo || !Array.isArray(respaldo.negocios) || !Array.isArray(respaldo.historial) ||
+        !respaldo.negocios.every(esNegocio) || !respaldo.historial.every(esSemana)) {
+      throw new Error("El archivo no es un respaldo válido de Estación.");
+    }
+    const negociosActuales = JSON.parse(localStorage.getItem("negocios") || "[]");
+    const historialActual = JSON.parse(localStorage.getItem("historial") || "[]");
+    if ((negociosActuales.length || historialActual.length) &&
+        !confirm("Esta app ya tiene datos. ¿Quieres reemplazarlos con el respaldo seleccionado?")) return;
+    const anteriorNegocios = localStorage.getItem("negocios");
+    const anteriorHistorial = localStorage.getItem("historial");
+    try {
+      localStorage.setItem("negocios", JSON.stringify(respaldo.negocios));
+      localStorage.setItem("historial", JSON.stringify(respaldo.historial));
+    } catch (error) {
+      try {
+        anteriorNegocios === null ? localStorage.removeItem("negocios") : localStorage.setItem("negocios", anteriorNegocios);
+        anteriorHistorial === null ? localStorage.removeItem("historial") : localStorage.setItem("historial", anteriorHistorial);
+      } catch (rollbackError) {
+        console.error("No se pudieron restaurar los datos anteriores:", rollbackError);
+      }
+      throw error;
+    }
+    document.querySelectorAll(".payment-card").forEach((card) => card.remove());
+    cargarEstados();
+    appMessage.textContent = `Respaldo importado: ${respaldo.negocios.length} negocios y ${respaldo.historial.length} semanas.`;
+  } catch (error) {
+    console.error("No se pudo importar el respaldo:", error);
+    appMessage.textContent = "No se pudo importar ese archivo. Verifica que sea un respaldo de Estación.";
+  } finally {
+    importFileInput.value = "";
+  }
+});
