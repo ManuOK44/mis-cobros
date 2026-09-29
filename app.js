@@ -327,12 +327,12 @@ backHomeButton.addEventListener("click", () => {
 });
 
 /* ===================== INIT ===================== */
-cargarEstados();
+try { cargarEstados(); } catch (error) { console.error("No se pudieron cargar los negocios:", error); appMessage.textContent = "No se pudieron cargar los datos guardados."; }
 /* ===================== RESPALDO Y TRASLADO DE DATOS ===================== */
 const exportDataButton = document.getElementById("export-data");
 const importDataButton = document.getElementById("import-data");
 const importFileInput = document.getElementById("import-file");
-exportDataButton.addEventListener("click", async () => {
+exportDataButton?.addEventListener("click", async () => {
   try {
     const backup = {
       app: "Estación",
@@ -365,8 +365,8 @@ exportDataButton.addEventListener("click", async () => {
     }
   }
 });
-importDataButton.addEventListener("click", () => importFileInput.click());
-importFileInput.addEventListener("change", async () => {
+importDataButton?.addEventListener("click", () => importFileInput.click());
+importFileInput?.addEventListener("change", async () => {
   const archivo = importFileInput.files[0];
   if (!archivo) return;
   try {
@@ -399,7 +399,7 @@ importFileInput.addEventListener("change", async () => {
       throw error;
     }
     document.querySelectorAll(".payment-card").forEach((card) => card.remove());
-    cargarEstados();
+    try { cargarEstados(); } catch (error) { console.error("No se pudieron cargar los negocios:", error); appMessage.textContent = "No se pudieron cargar los datos guardados."; }
     appMessage.textContent = `Respaldo importado: ${respaldo.negocios.length} negocios y ${respaldo.historial.length} semanas.`;
   } catch (error) {
     console.error("No se pudo importar el respaldo:", error);
