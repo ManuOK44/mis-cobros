@@ -257,34 +257,59 @@ document.getElementById("search-business").addEventListener("input", (e) => {
 
 /* ===================== HISTORIAL ===================== */
 saveHistoryButton.addEventListener("click", () => {
-  const historial = JSON.parse(localStorage.getItem("historial")) || [];
-  const negociosSemana = JSON.parse(localStorage.getItem("negocios")) || [];
-
-  const fecha = new Date().toLocaleDateString("es-MX");
-
-  if (!historial.some(s => s.fecha === fecha)) {
-    historial.push({ fecha, negocios: negociosSemana });
-    localStorage.setItem("historial", JSON.stringify(historial));
-  }
-
   const historyList = document.getElementById("history-list");
+  const historyView = document.getElementById("history-view");
+  const payments = document.querySelector(".payments");
+
+  payments.style.display = "none";
+  historyView.style.display = "block";
   historyList.innerHTML = "";
 
-  historial.forEach((semana) => {
-    const card = document.createElement("div");
-    card.classList.add("card");
+  try {
+    const historialGuardado = JSON.parse(localStorage.getItem("historial") || "[]");
+    const historial = Array.isArray(historialGuardado)
+      ? historialGuardado.filter((semana) => semana && Array.isArray(semana.negocios))
+      : [];
 
-    let html = `<h4>${semana.fecha}</h4>`;
-    semana.negocios.forEach(n => {
-      html += `<p style="color:#94a3b8;">${n.nombre} • ${n.dia} • $${n.monto}</p>`;
+    const negociosGuardados = JSON.parse(localStorage.getItem("negocios") || "[]");
+    const negociosSemana = Array.isArray(negociosGuardados) ? negociosGuardados : [];
+    const fecha = new Date().toLocaleDateString("es-MX");
+
+    if (!historial.some((semana) => semana.fecha === fecha)) {
+      historial.push({ fecha, negocios: negociosSemana });
+      try {
+        localStorage.setItem("historial", JSON.stringify(historial));
+      } catch (error) {
+        appMessage.textContent = "No se pudo guardar esta semana por falta de espacio, pero puedes ver el historial existente.";
+      }
+    }
+
+    if (historial.length === 0) {
+      historyList.innerHTML = '<p class="empty-history">No hay semanas guardadas en el historial.</p>';
+      return;
+    }
+
+    historial.forEach((semana) => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+
+      const titulo = document.createElement("h4");
+      titulo.textContent = semana.fecha || "Semana guardada";
+      card.appendChild(titulo);
+
+      semana.negocios.forEach((negocio) => {
+        const detalle = document.createElement("p");
+        detalle.style.color = "#94a3b8";
+        detalle.textContent = `${negocio.nombre || "Negocio"} • ${negocio.dia || ""} • $${negocio.monto || 0}`;
+        card.appendChild(detalle);
+      });
+
+      historyList.appendChild(card);
     });
-
-    card.innerHTML = html;
-    historyList.appendChild(card);
-  });
-
-  document.querySelector(".payments").style.display = "none";
-  document.getElementById("history-view").style.display = "block";
+  } catch (error) {
+    console.error("No se pudo leer el historial:", error);
+    historyList.innerHTML = '<p class="empty-history">No se pudo leer el historial guardado. Puedes borrarlo e intentarlo de nuevo.</p>';
+  }
 });
 
 clearHistoryButton.addEventListener("click", () => {
