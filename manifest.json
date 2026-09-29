@@ -1,6 +1,6 @@
 {
-  "name": "Mis Cobros",
-  "short_name": "Cobros",
+  "name": "Estación",
+  "short_name": "Estación",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
