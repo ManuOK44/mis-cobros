@@ -30,6 +30,21 @@ body {
   margin-top: 5px;
 }
 
+#clear-cache {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  background: #1e293b;
+  color: white;
+  cursor: pointer;
+}
+
+#app-message {
+  min-height: 18px;
+  font-size: 12px;
+}
+
 /* SUMMARY */
 .summary {
   display: grid;
@@ -60,6 +75,26 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+}
+
+.history-actions {
+  display: flex;
+  gap: 8px;
+}
+
+#clear-history,
+#back-home {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #334155;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#clear-history {
+  background: #7f1d1d;
 }
 
 #add-business {
