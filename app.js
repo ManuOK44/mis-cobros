@@ -15,6 +15,8 @@ const paymentsSection = document.querySelector(".payments");
 const imageInput = document.getElementById("business-image");
 const clearCacheButton = document.getElementById("clear-cache");
 const appMessage = document.getElementById("app-message");
+const markAllPaidButton = document.getElementById("mark-all-paid");
+const markAllPendingButton = document.getElementById("mark-all-pending");
 
 let tarjetaEditando = null;
 
@@ -69,6 +71,33 @@ function activarEstado(estado) {
     actualizarTotales();
   });
 }
+
+/* ===================== CAMBIAR ESTADO DE TODOS ===================== */
+function cambiarEstadoDeTodos(nuevoEstado) {
+  const accion = nuevoEstado === "Cobrado" ? "cobrado" : "pendiente";
+  const cantidad = document.querySelectorAll(".payment-card").length;
+
+  if (cantidad === 0) {
+    appMessage.textContent = "No hay negocios para actualizar.";
+    return;
+  }
+
+  if (!confirm(`¿Marcar los ${cantidad} negocios como ${accion}? Esta acción cambiará el estado de todos.`)) return;
+
+  document.querySelectorAll(".payment-card").forEach((card) => {
+    const estado = card.querySelector(".status");
+    estado.classList.toggle("paid", nuevoEstado === "Cobrado");
+    estado.classList.toggle("pending", nuevoEstado === "Pendiente");
+    estado.textContent = nuevoEstado;
+  });
+
+  guardarEstados();
+  actualizarTotales();
+  appMessage.textContent = `Listo: ${cantidad} negocios marcados como ${accion}.`;
+}
+
+markAllPaidButton?.addEventListener("click", () => cambiarEstadoDeTodos("Cobrado"));
+markAllPendingButton?.addEventListener("click", () => cambiarEstadoDeTodos("Pendiente"));
 
 /* ===================== TOTALES ===================== */
 function actualizarTotales() {
