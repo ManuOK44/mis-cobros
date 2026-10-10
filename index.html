@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estación</title>
-  <link rel="stylesheet" href="style.css?v=20260928-4">
+  <link rel="stylesheet" href="style.css?v=20261010-1">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
 </head>
@@ -30,6 +30,10 @@
         <button class="filter-btn active" data-filter="all">Todos</button>
         <button class="filter-btn" data-filter="pending">Pendientes</button>
         <button class="filter-btn" data-filter="paid">Cobrados</button>
+      </div>
+      <div class="bulk-actions">
+        <button id="mark-all-paid" type="button">Marcar todo como Cobrado</button>
+        <button id="mark-all-pending" type="button">Marcar todo como Pendiente</button>
       </div>
       <input type="text" id="search-business" placeholder="Buscar negocio...">
       <div class="payment-card" data-monto="350">
@@ -80,7 +84,7 @@
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </footer>
   </div>
-  <script src="app.js?v=20260928-3"></script>
+  <script src="app.js?v=20261010-1"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
