@@ -296,3 +296,29 @@ body {
 .data-transfer button { flex: 1; min-height: 42px; padding: 8px 6px; border: 1px solid #475569; border-radius: 10px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
 #export-data { background: #1d4ed8; border-color: #3b82f6; }
 #import-data { background: #334155; }
+
+
+/* Acciones masivas de cobro */
+.bulk-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.bulk-actions button {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#mark-all-paid { background: #166534; border-color: #22c55e; }
+#mark-all-pending { background: #92400e; border-color: #f59e0b; }
+.bulk-actions button:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+@media (max-width: 360px) {
+  .bulk-actions { grid-template-columns: 1fr; }
+}
