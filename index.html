@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estación</title>
-  <link rel="stylesheet" href="style.css?v=20261013-11">
+  <link rel="stylesheet" href="style.css?v=20261013-12">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
 </head>
@@ -16,7 +16,7 @@
       <p id="app-message" role="status" aria-live="polite"></p>
     </header>
     <section class="summary">
-      <button id="toggle-figures" class="toggle-figures" type="button" aria-label="Ocultar cifras" aria-pressed="false" title="Ocultar o mostrar cifras">👁️</button>
+      <button id="toggle-figures" class="toggle-figures" type="button" aria-label="Ocultar cifras" aria-pressed="false" title="Ocultar o mostrar cifras"><svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="M4 4 20 20"></path></svg></button>
       <div class="card monthly-card"><span>Ganancia mensual registrada</span><h2 id="ganancia-mensual">$0</h2><small id="mes-ganancia"></small></div>
       <div class="card"><span>Total negocios</span><h2 id="total-negocios">0</h2></div>
       <div class="card"><span>Cobro semanal</span><h2 id="total-semanal">$0</h2></div>
@@ -87,7 +87,7 @@
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </footer>
   </div>
-  <script src="app.js?v=20261013-11"></script>
+  <script src="app.js?v=20261013-12"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
