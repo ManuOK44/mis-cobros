@@ -22,6 +22,28 @@ const markAllPendingButton = document.getElementById("mark-all-pending");
 
 let tarjetaEditando = null;
 
+/* ===================== OCULTAR / MOSTRAR CIFRAS ===================== */
+const toggleFiguresButton = document.getElementById("toggle-figures");
+
+function aplicarVisibilidadCifras(ocultar) {
+  document.body.classList.toggle("hide-figures", ocultar);
+  if (toggleFiguresButton) {
+    toggleFiguresButton.textContent = ocultar ? "🙈" : "👁️";
+    toggleFiguresButton.setAttribute("aria-label", ocultar ? "Mostrar cifras" : "Ocultar cifras");
+    toggleFiguresButton.setAttribute("aria-pressed", String(ocultar));
+    toggleFiguresButton.title = ocultar ? "Mostrar cifras" : "Ocultar cifras";
+  }
+}
+
+if (toggleFiguresButton) {
+  aplicarVisibilidadCifras(localStorage.getItem("estacionOcultarCifras") === "true");
+  toggleFiguresButton.addEventListener("click", () => {
+    const ocultar = !document.body.classList.contains("hide-figures");
+    localStorage.setItem("estacionOcultarCifras", String(ocultar));
+    aplicarVisibilidadCifras(ocultar);
+  });
+}
+
 /* ===================== GUARDAR ===================== */
 function guardarEstados() {
   const datos = [];
