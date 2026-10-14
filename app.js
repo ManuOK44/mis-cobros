@@ -117,7 +117,7 @@ function actualizarGananciaMensual() {
     const clave = inicioSemana.getFullYear()+"-"+String(inicioSemana.getMonth()+1).padStart(2,"0")+"-"+String(inicioSemana.getDate()).padStart(2,"0");
     const existente = semanasPorClave.get(clave); if (!existente || fecha >= existente.fecha) semanasPorClave.set(clave,{fecha,negocios:semana.negocios,inicioSemana});
   });
-  let total = 0; semanasPorClave.forEach((semana) => { if (semana.inicioSemana.getMonth()===ahora.getMonth() && semana.inicioSemana.getFullYear()===ahora.getFullYear()) total += semana.negocios.reduce((suma,negocio)=>suma+(Number(negocio.monto)||0),0); });
+  let total = 0; semanasPorClave.forEach((semana) => { if (semana.fecha.getMonth()===ahora.getMonth() && semana.fecha.getFullYear()===ahora.getFullYear()) total += semana.negocios.reduce((suma,negocio)=>suma+(Number(negocio.monto)||0),0); });
   if (gananciaMensual) gananciaMensual.textContent = total.toLocaleString("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:2});
   if (mesGanancia) mesGanancia.textContent = ahora.toLocaleDateString("es-MX",{month:"long",year:"numeric"});
 }
