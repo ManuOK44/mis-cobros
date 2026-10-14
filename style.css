@@ -325,6 +325,6 @@ body {
 
 
 /* Ganancia mensual registrada */
-.monthly-card { grid-column: 1 / -1; border: 1px solid #166534; background: linear-gradient(135deg, #14532d, #1e293b); }
+.monthly-card { grid-column: 1 / -1; grid-row: 1; border: 1px solid #166534; background: linear-gradient(135deg, #14532d, #1e293b); }
 .monthly-card h2 { color: #86efac; font-size: 26px; }
 .monthly-card small { display: block; margin-top: 6px; color: #bbf7d0; text-transform: capitalize; font-size: 12px; }
