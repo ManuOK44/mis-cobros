@@ -171,37 +171,21 @@ function sincronizarSemanaActual() {
 }
 
 function actualizarGananciaMensual() {
-  const historial = sincronizarSemanaActual();
-  const ahora = new Date();
-  const inicioActual = obtenerInicioSemana(ahora);
-  const periodoActual = inicioActual.getFullYear() + "-" + String(inicioActual.getMonth() + 1).padStart(2, "0") + "-" + String(inicioActual.getDate()).padStart(2, "0");
-  const añoActual = ahora.getFullYear();
-  const mesActual = ahora.getMonth();
-  const semanasContadas = new Set();
-  let total = 0;
-
-  // Suma las semanas anteriores registradas este mes, una sola vez por semana.
-  historial.forEach((semana) => {
-    if (!semana || !Array.isArray(semana.negocios)) return;
-    const clave = claveDeSemana(semana);
-    if (!clave || clave === periodoActual || semanasContadas.has(clave)) return;
-    const fechaRegistro = fechaDesdeTexto(semana.fecha) || fechaDesdeTexto(semana.periodo);
-    if (!fechaRegistro || fechaRegistro.getFullYear() !== añoActual || fechaRegistro.getMonth() !== mesActual) return;
-    semanasContadas.add(clave);
-    total += montoDeNegocios(semana.negocios);
-  });
-
-  // Añade el cobro semanal que aparece en pantalla, para que responda de inmediato a cambios.
-  const semanalActual = Number(String(totalSemanal && totalSemanal.textContent || "0").replace(/[$,\s]/g, "")) || 0;
-  total += semanalActual;
+  // Estimación mensual: cobro semanal actual multiplicado por 4.
+  const semanalActual = Number(
+    String(totalSemanal && totalSemanal.textContent || "0").replace(/[$,\s]/g, "")
+  ) || 0;
+  const totalMensual = semanalActual * 4;
 
   if (gananciaMensual) {
-    gananciaMensual.textContent = total.toLocaleString("es-MX", {
-      style: "currency", currency: "MXN", maximumFractionDigits: 2
+    gananciaMensual.textContent = totalMensual.toLocaleString("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      maximumFractionDigits: 2
     });
   }
   if (mesGanancia) {
-    mesGanancia.textContent = "Semanas registradas de " + ahora.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+    mesGanancia.textContent = "Estimación mensual (cobro semanal × 4)";
   }
 }
 
