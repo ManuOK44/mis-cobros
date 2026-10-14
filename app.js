@@ -120,51 +120,11 @@ function obtenerInicioSemana(fecha) {
 }
 
 function claveDeSemana(semana) {
-  if (semana && /^\d{4}-\d{2}-\d{2}$/.test(String(semana.periodo || ""))) {
-    return semana.periodo;
-  }
+  if (semana && /^\d{4}-\d{2}-\d{2}$/.test(String(semana.periodo || ""))) return semana.periodo;
   const fecha = fechaDesdeTexto(semana && semana.fecha);
   if (!fecha) return "";
   const inicio = obtenerInicioSemana(fecha);
   return inicio.getFullYear() + "-" + String(inicio.getMonth() + 1).padStart(2, "0") + "-" + String(inicio.getDate()).padStart(2, "0");
-}
-
-function sincronizarSemanaActual() {
-  let historial;
-  let negociosActuales;
-  try {
-    historial = JSON.parse(localStorage.getItem("historial") || "[]");
-    negociosActuales = JSON.parse(localStorage.getItem("negocios") || "[]");
-  } catch (error) {
-    console.error("No se pudo sincronizar el historial semanal:", error);
-    return [];
-  }
-  if (!Array.isArray(historial)) historial = [];
-  if (!Array.isArray(negociosActuales)) negociosActuales = [];
-
-  const ahora = new Date();
-  const inicio = obtenerInicioSemana(ahora);
-  const periodo = inicio.getFullYear() + "-" + String(inicio.getMonth() + 1).padStart(2, "0") + "-" + String(inicio.getDate()).padStart(2, "0");
-  const indice = historial.findIndex((semana) => semana && Array.isArray(semana.negocios) && claveDeSemana(semana) === periodo);
-
-  // No crea semanas vacías, pero sí actualiza una semana que ya existe.
-  if (negociosActuales.length > 0 || indice >= 0) {
-    const anterior = indice >= 0 ? historial[indice] : null;
-    const registro = {
-      ...(anterior || {}),
-      fecha: (anterior && anterior.fecha) || ahora.toLocaleDateString("es-MX"),
-      periodo,
-      negocios: negociosActuales
-    };
-    if (indice >= 0) historial[indice] = registro;
-    else historial.push(registro);
-    try {
-      localStorage.setItem("historial", JSON.stringify(historial));
-    } catch (error) {
-      console.error("No se pudo guardar la semana actual:", error);
-    }
-  }
-  return historial;
 }
 
 function montoDeNegocios(negocios) {
@@ -175,33 +135,73 @@ function montoDeNegocios(negocios) {
   }, 0);
 }
 
+function sincronizarSemanaActual() {
+  let historial = [];
+  let negociosActuales = [];
+  try {
+    const guardado = JSON.parse(localStorage.getItem("historial") || "[]");
+    historial = Array.isArray(guardado) ? guardado : [];
+    const actuales = JSON.parse(localStorage.getItem("negocios") || "[]");
+    negociosActuales = Array.isArray(actuales) ? actuales : [];
+  } catch (error) {
+    console.error("No se pudo leer el historial:", error);
+    return [];
+  }
+
+  const ahora = new Date();
+  const inicio = obtenerInicioSemana(ahora);
+  const periodo = inicio.getFullYear() + "-" + String(inicio.getMonth() + 1).padStart(2, "0") + "-" + String(inicio.getDate()).padStart(2, "0");
+  const indice = historial.findIndex((semana) => semana && Array.isArray(semana.negocios) && claveDeSemana(semana) === periodo);
+
+  // La semana actual siempre refleja los negocios actuales; las semanas anteriores no se modifican.
+  if (negociosActuales.length > 0 || indice >= 0) {
+    const anterior = indice >= 0 ? historial[indice] : null;
+    const registro = {
+      ...(anterior || {}),
+      fecha: (anterior && anterior.fecha) || ahora.toLocaleDateString("es-MX"),
+      periodo,
+      negocios: negociosActuales
+    };
+    if (indice >= 0) historial[indice] = registro;
+    else historial.push(registro);
+    try { localStorage.setItem("historial", JSON.stringify(historial)); }
+    catch (error) { console.error("No se pudo guardar la semana actual:", error); }
+  }
+  return historial;
+}
+
 function actualizarGananciaMensual() {
   const historial = sincronizarSemanaActual();
   const ahora = new Date();
+  const inicioActual = obtenerInicioSemana(ahora);
+  const periodoActual = inicioActual.getFullYear() + "-" + String(inicioActual.getMonth() + 1).padStart(2, "0") + "-" + String(inicioActual.getDate()).padStart(2, "0");
   const añoActual = ahora.getFullYear();
   const mesActual = ahora.getMonth();
   const semanasContadas = new Set();
   let total = 0;
 
+  // Suma las semanas anteriores registradas este mes, una sola vez por semana.
   historial.forEach((semana) => {
     if (!semana || !Array.isArray(semana.negocios)) return;
+    const clave = claveDeSemana(semana);
+    if (!clave || clave === periodoActual || semanasContadas.has(clave)) return;
     const fechaRegistro = fechaDesdeTexto(semana.fecha) || fechaDesdeTexto(semana.periodo);
     if (!fechaRegistro || fechaRegistro.getFullYear() !== añoActual || fechaRegistro.getMonth() !== mesActual) return;
-    const clave = claveDeSemana(semana) || String(semana.fecha || "");
-    if (semanasContadas.has(clave)) return;
     semanasContadas.add(clave);
     total += montoDeNegocios(semana.negocios);
   });
 
+  // Añade el cobro semanal que aparece en pantalla, para que responda de inmediato a cambios.
+  const semanalActual = Number(String(totalSemanal && totalSemanal.textContent || "0").replace(/[$,\s]/g, "")) || 0;
+  total += semanalActual;
+
   if (gananciaMensual) {
     gananciaMensual.textContent = total.toLocaleString("es-MX", {
-      style: "currency",
-      currency: "MXN",
-      maximumFractionDigits: 2
+      style: "currency", currency: "MXN", maximumFractionDigits: 2
     });
   }
   if (mesGanancia) {
-    mesGanancia.textContent = "Suma de las semanas registradas en " + ahora.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+    mesGanancia.textContent = "Semanas registradas de " + ahora.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
   }
 }
 
