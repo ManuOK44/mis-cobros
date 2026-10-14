@@ -328,3 +328,28 @@ body {
 .monthly-card { grid-column: 1 / -1; grid-row: 1; border: 1px solid #166534; background: linear-gradient(135deg, #14532d, #1e293b); }
 .monthly-card h2 { color: #86efac; font-size: 26px; }
 .monthly-card small { display: block; margin-top: 6px; color: #bbf7d0; text-transform: capitalize; font-size: 12px; }
+
+
+/* Botón para ocultar o mostrar cifras */
+.summary { position: relative; }
+.toggle-figures {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  min-width: 42px;
+  min-height: 40px;
+  border: 1px solid #475569;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 19px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+body.hide-figures .summary .card h2,
+body.hide-figures .payment-card .info p,
+body.hide-figures #history-list {
+  filter: blur(7px);
+  user-select: none;
+}
