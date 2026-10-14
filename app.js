@@ -28,7 +28,7 @@ const toggleFiguresButton = document.getElementById("toggle-figures");
 function aplicarVisibilidadCifras(ocultar) {
   document.body.classList.toggle("hide-figures", ocultar);
   if (toggleFiguresButton) {
-    toggleFiguresButton.textContent = ocultar ? "🙈" : "👁️";
+    toggleFiguresButton.innerHTML = '<svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="M4 4 20 20"></path></svg>';
     toggleFiguresButton.setAttribute("aria-label", ocultar ? "Mostrar cifras" : "Ocultar cifras");
     toggleFiguresButton.setAttribute("aria-pressed", String(ocultar));
     toggleFiguresButton.title = ocultar ? "Mostrar cifras" : "Ocultar cifras";
