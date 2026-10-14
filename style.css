@@ -353,3 +353,10 @@ body.hide-figures #history-list {
   filter: blur(7px);
   user-select: none;
 }
+
+
+/* Icono de ojo con línea diagonal para ocultar cifras */
+.toggle-figures { display: inline-flex; align-items: center; justify-content: center; }
+.eye-icon { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.eye-icon .eye-slash { display: none; }
+body.hide-figures .eye-icon .eye-slash { display: block; }
