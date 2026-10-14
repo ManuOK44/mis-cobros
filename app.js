@@ -103,23 +103,69 @@ markAllPendingButton?.addEventListener("click", () => cambiarEstadoDeTodos("Pend
 
 /* ===================== GANANCIA MENSUAL ===================== */
 function obtenerFechaRegistro(semana) {
-  if (semana.periodo && /^\d{4}-\d{2}-\d{2}$/.test(semana.periodo)) return new Date(semana.periodo + "T12:00:00");
-  const partes = String(semana.fecha || "").split("/");
-  if (partes.length === 3) { const [dia, mes, anio] = partes; const fecha = new Date(Number(anio), Number(mes) - 1, Number(dia), 12); if (!Number.isNaN(fecha.getTime())) return fecha; }
+  // La fecha de guardado determina el mes contabilizado.
+  const textoFecha = String(semana.fecha || "").trim();
+  let coincidencia = textoFecha.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  if (coincidencia) {
+    const fecha = new Date(Number(coincidencia[3]), Number(coincidencia[2]) - 1, Number(coincidencia[1]), 12);
+    if (!Number.isNaN(fecha.getTime())) return fecha;
+  }
+  coincidencia = textoFecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (coincidencia) {
+    const fecha = new Date(Number(coincidencia[1]), Number(coincidencia[2]) - 1, Number(coincidencia[3]), 12);
+    if (!Number.isNaN(fecha.getTime())) return fecha;
+  }
+  if (semana.periodo && /^\d{4}-\d{2}-\d{2}$/.test(semana.periodo)) {
+    const [anio, mes, dia] = semana.periodo.split("-").map(Number);
+    const fecha = new Date(anio, mes - 1, dia, 12);
+    if (!Number.isNaN(fecha.getTime())) return fecha;
+  }
   return null;
 }
-function obtenerInicioSemana(fecha) { const inicio = new Date(fecha); inicio.setHours(12,0,0,0); inicio.setDate(inicio.getDate()-((inicio.getDay()+6)%7)); return inicio; }
+function obtenerInicioSemana(fecha) {
+  const inicio = new Date(fecha);
+  inicio.setHours(12, 0, 0, 0);
+  inicio.setDate(inicio.getDate() - ((inicio.getDay() + 6) % 7));
+  return inicio;
+}
 function actualizarGananciaMensual() {
-  const ahora = new Date(); const historial = JSON.parse(localStorage.getItem("historial") || "[]"); const semanasPorClave = new Map();
+  const ahora = new Date();
+  const historialGuardado = JSON.parse(localStorage.getItem("historial") || "[]");
+  const historial = Array.isArray(historialGuardado) ? historialGuardado : [];
+  const semanasPorClave = new Map();
+
   historial.forEach((semana) => {
-    if (!semana || !Array.isArray(semana.negocios)) return; const fecha = obtenerFechaRegistro(semana); if (!fecha) return;
-    const inicioSemana = semana.periodo ? new Date(semana.periodo + "T12:00:00") : obtenerInicioSemana(fecha);
-    const clave = inicioSemana.getFullYear()+"-"+String(inicioSemana.getMonth()+1).padStart(2,"0")+"-"+String(inicioSemana.getDate()).padStart(2,"0");
-    const existente = semanasPorClave.get(clave); if (!existente || fecha >= existente.fecha) semanasPorClave.set(clave,{fecha,negocios:semana.negocios,inicioSemana});
+    if (!semana || !Array.isArray(semana.negocios)) return;
+    const fechaRegistro = obtenerFechaRegistro(semana);
+    if (!fechaRegistro) return;
+
+    let inicioSemana;
+    if (semana.periodo && /^\d{4}-\d{2}-\d{2}$/.test(semana.periodo)) {
+      const [anio, mes, dia] = semana.periodo.split("-").map(Number);
+      inicioSemana = new Date(anio, mes - 1, dia, 12);
+    } else {
+      inicioSemana = obtenerInicioSemana(fechaRegistro);
+    }
+    const clave = [inicioSemana.getFullYear(), String(inicioSemana.getMonth() + 1).padStart(2, "0"), String(inicioSemana.getDate()).padStart(2, "0")].join("-");
+    const existente = semanasPorClave.get(clave);
+    if (!existente || fechaRegistro >= existente.fechaRegistro) {
+      semanasPorClave.set(clave, { fechaRegistro, negocios: semana.negocios });
+    }
   });
-  let total = 0; semanasPorClave.forEach((semana) => { if (semana.fecha.getMonth()===ahora.getMonth() && semana.fecha.getFullYear()===ahora.getFullYear()) total += semana.negocios.reduce((suma,negocio)=>suma+(Number(negocio.monto)||0),0); });
-  if (gananciaMensual) gananciaMensual.textContent = total.toLocaleString("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:2});
-  if (mesGanancia) mesGanancia.textContent = ahora.toLocaleDateString("es-MX",{month:"long",year:"numeric"});
+
+  let total = 0;
+  semanasPorClave.forEach((semana) => {
+    if (semana.fechaRegistro.getMonth() === ahora.getMonth() && semana.fechaRegistro.getFullYear() === ahora.getFullYear()) {
+      total += semana.negocios.reduce((suma, negocio) => suma + (Number(String(negocio.monto ?? 0).replace(/[$,\s]/g, "")) || 0), 0);
+    }
+  });
+
+  if (gananciaMensual) {
+    gananciaMensual.textContent = total.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 });
+  }
+  if (mesGanancia) {
+    mesGanancia.textContent = ahora.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+  }
 }
 
 /* ===================== TOTALES ===================== */
