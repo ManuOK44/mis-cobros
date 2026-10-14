@@ -185,7 +185,7 @@ function actualizarGananciaMensual() {
     });
   }
   if (mesGanancia) {
-    mesGanancia.textContent = "Estimación mensual (cobro semanal × 4)";
+    mesGanancia.textContent = "Estimación mensual";
   }
 }
 
