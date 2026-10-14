@@ -7,6 +7,8 @@ const totalNegocios = document.getElementById("total-negocios");
 const totalSemanal = document.getElementById("total-semanal");
 const totalCobrado = document.getElementById("total-cobrado");
 const totalPendiente = document.getElementById("total-pendiente");
+const gananciaMensual = document.getElementById("ganancia-mensual");
+const mesGanancia = document.getElementById("mes-ganancia");
 
 const addButton = document.getElementById("add-business");
 const modal = document.getElementById("business-modal");
@@ -99,6 +101,27 @@ function cambiarEstadoDeTodos(nuevoEstado) {
 markAllPaidButton?.addEventListener("click", () => cambiarEstadoDeTodos("Cobrado"));
 markAllPendingButton?.addEventListener("click", () => cambiarEstadoDeTodos("Pendiente"));
 
+/* ===================== GANANCIA MENSUAL ===================== */
+function obtenerFechaRegistro(semana) {
+  if (semana.periodo && /^\d{4}-\d{2}-\d{2}$/.test(semana.periodo)) return new Date(semana.periodo + "T12:00:00");
+  const partes = String(semana.fecha || "").split("/");
+  if (partes.length === 3) { const [dia, mes, anio] = partes; const fecha = new Date(Number(anio), Number(mes) - 1, Number(dia), 12); if (!Number.isNaN(fecha.getTime())) return fecha; }
+  return null;
+}
+function obtenerInicioSemana(fecha) { const inicio = new Date(fecha); inicio.setHours(12,0,0,0); inicio.setDate(inicio.getDate()-((inicio.getDay()+6)%7)); return inicio; }
+function actualizarGananciaMensual() {
+  const ahora = new Date(); const historial = JSON.parse(localStorage.getItem("historial") || "[]"); const semanasPorClave = new Map();
+  historial.forEach((semana) => {
+    if (!semana || !Array.isArray(semana.negocios)) return; const fecha = obtenerFechaRegistro(semana); if (!fecha) return;
+    const inicioSemana = semana.periodo ? new Date(semana.periodo + "T12:00:00") : obtenerInicioSemana(fecha);
+    const clave = inicioSemana.getFullYear()+"-"+String(inicioSemana.getMonth()+1).padStart(2,"0")+"-"+String(inicioSemana.getDate()).padStart(2,"0");
+    const existente = semanasPorClave.get(clave); if (!existente || fecha >= existente.fecha) semanasPorClave.set(clave,{fecha,negocios:semana.negocios,inicioSemana});
+  });
+  let total = 0; semanasPorClave.forEach((semana) => { if (semana.inicioSemana.getMonth()===ahora.getMonth() && semana.inicioSemana.getFullYear()===ahora.getFullYear()) total += semana.negocios.reduce((suma,negocio)=>suma+(Number(negocio.monto)||0),0); });
+  if (gananciaMensual) gananciaMensual.textContent = total.toLocaleString("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:2});
+  if (mesGanancia) mesGanancia.textContent = ahora.toLocaleDateString("es-MX",{month:"long",year:"numeric"});
+}
+
 /* ===================== TOTALES ===================== */
 function actualizarTotales() {
   let negocios = 0, semanal = 0, cobrado = 0, pendiente = 0;
@@ -117,7 +140,8 @@ function actualizarTotales() {
   totalNegocios.textContent = negocios;
   totalSemanal.textContent = `$${semanal}`;
   totalCobrado.textContent = `$${cobrado}`;
-  totalPendiente.textContent = `$${pendiente}`;
+  totalPendiente.textContent = `${pendiente}`;
+  actualizarGananciaMensual();
 }
 
 /* ===================== CARGAR ===================== */
@@ -302,17 +326,19 @@ saveHistoryButton.addEventListener("click", () => {
 
     const negociosGuardados = JSON.parse(localStorage.getItem("negocios") || "[]");
     const negociosSemana = Array.isArray(negociosGuardados) ? negociosGuardados : [];
-    const fecha = new Date().toLocaleDateString("es-MX");
-
-    if (!historial.some((semana) => semana.fecha === fecha)) {
-      historial.push({ fecha, negocios: negociosSemana });
-      try {
-        localStorage.setItem("historial", JSON.stringify(historial));
-      } catch (error) {
-        appMessage.textContent = "No se pudo guardar esta semana por falta de espacio, pero puedes ver el historial existente.";
-      }
-    }
-
+    const ahora = new Date(); const fecha = ahora.toLocaleDateString("es-MX");
+    const inicioSemana = obtenerInicioSemana(ahora);
+    const periodo = inicioSemana.getFullYear()+"-"+String(inicioSemana.getMonth()+1).padStart(2,"0")+"-"+String(inicioSemana.getDate()).padStart(2,"0");
+    const indiceSemana = historial.findIndex((semana) => {
+      const fechaSemana = obtenerFechaRegistro(semana); if (!fechaSemana) return false;
+      const inicio = semana.periodo ? semana.periodo : (() => { const f=obtenerInicioSemana(fechaSemana); return f.getFullYear()+"-"+String(f.getMonth()+1).padStart(2,"0")+"-"+String(f.getDate()).padStart(2,"0"); })();
+      return inicio === periodo;
+    });
+    const registroSemana = { fecha, periodo, negocios: negociosSemana };
+    if (indiceSemana >= 0) historial[indiceSemana] = registroSemana; else historial.push(registroSemana);
+    try { localStorage.setItem("historial", JSON.stringify(historial)); }
+    catch (error) { appMessage.textContent = "No se pudo guardar esta semana por falta de espacio, pero puedes ver el historial existente."; }
+    actualizarGananciaMensual();
     if (historial.length === 0) {
       historyList.innerHTML = '<p class="empty-history">No hay semanas guardadas en el historial.</p>';
       return;
@@ -357,6 +383,7 @@ backHomeButton.addEventListener("click", () => {
 
 /* ===================== INIT ===================== */
 try { cargarEstados(); } catch (error) { console.error("No se pudieron cargar los negocios:", error); appMessage.textContent = "No se pudieron cargar los datos guardados."; }
+actualizarGananciaMensual();
 /* ===================== RESPALDO Y TRASLADO DE DATOS ===================== */
 const exportDataButton = document.getElementById("export-data");
 const importDataButton = document.getElementById("import-data");
