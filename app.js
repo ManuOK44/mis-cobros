@@ -473,6 +473,42 @@ backHomeButton.addEventListener("click", () => {
 /* ===================== INIT ===================== */
 try { cargarEstados(); } catch (error) { console.error("No se pudieron cargar los negocios:", error); appMessage.textContent = "No se pudieron cargar los datos guardados."; }
 actualizarGananciaMensual();
+/* ===================== NAVEGACIÓN PRINCIPAL ===================== */
+const vistasEstacion = {
+  inicio: document.getElementById("nav-inicio"),
+  cobros: document.getElementById("nav-cobros"),
+  negocios: document.getElementById("nav-negocios"),
+  historial: saveHistoryButton
+};
+function abrirVistaEstacion(vista) {
+  const historial = document.getElementById("history-view");
+  const resumen = document.querySelector(".summary");
+  const titulo = paymentsSection.querySelector(".section-title h3");
+  const esHistorial = vista === "historial";
+  historial.style.display = esHistorial ? "block" : "none";
+  paymentsSection.style.display = esHistorial ? "none" : "block";
+  resumen.style.display = (vista === "inicio") ? "" : "none";
+  document.body.classList.toggle("vista-negocios", vista === "negocios");
+  if (titulo) titulo.textContent = vista === "negocios" ? "Negocios registrados" : "Cobros de esta semana";
+  if (vista === "negocios") {
+    const buscador = document.getElementById("search-business");
+    if (buscador) { buscador.value = ""; buscador.dispatchEvent(new Event("input", {bubbles:true})); }
+    const todos = document.querySelector('.filter-btn[data-filter="all"]');
+    if (todos) todos.click();
+  }
+  Object.entries(vistasEstacion).forEach(([nombre, boton]) => {
+    if (!boton) return;
+    if (nombre === vista) boton.setAttribute("aria-current", "page");
+    else boton.removeAttribute("aria-current");
+  });
+  if (!esHistorial) window.scrollTo({top:0,behavior:"auto"});
+}
+["inicio", "cobros", "negocios"].forEach(vista => {
+  vistasEstacion[vista]?.addEventListener("click", () => abrirVistaEstacion(vista));
+});
+saveHistoryButton.addEventListener("click", () => abrirVistaEstacion("historial"));
+backHomeButton.addEventListener("click", () => abrirVistaEstacion("inicio"));
+
 /* ===================== RESPALDO Y TRASLADO DE DATOS ===================== */
 const exportDataButton = document.getElementById("export-data");
 const importDataButton = document.getElementById("import-data");
