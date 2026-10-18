@@ -486,8 +486,8 @@ function abrirVistaEstacion(vista) {
   const titulo = paymentsSection.querySelector(".section-title h3");
   const esHistorial = vista === "historial";
   historial.style.display = esHistorial ? "block" : "none";
-  paymentsSection.style.display = esHistorial ? "none" : "block";
-  resumen.style.display = (vista === "inicio") ? "" : "none";
+  paymentsSection.style.display = (vista === "inicio" || vista === "negocios") ? "block" : "none";
+  resumen.style.display = (vista === "inicio" || vista === "cobros") ? "" : "none";
   document.body.classList.toggle("vista-negocios", vista === "negocios");
   if (titulo) titulo.textContent = vista === "negocios" ? "Negocios registrados" : "Cobros de esta semana";
   if (vista === "negocios") {
