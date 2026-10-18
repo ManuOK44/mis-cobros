@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estación</title>
-  <link rel="stylesheet" href="style.css?v=20261013-12">
+  <link rel="stylesheet" href="style.css?v=20261018-nav1">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
 </head>
@@ -75,9 +75,9 @@
       <div id="history-list"></div>
     </section>
     <nav class="bottom-nav">
-      <button>Inicio</button>
-      <button>Cobros</button>
-      <button>Negocios</button>
+      <button id="nav-inicio" type="button" aria-current="page">Inicio</button>
+      <button id="nav-cobros" type="button">Cobros</button>
+      <button id="nav-negocios" type="button">Negocios</button>
       <button id="save-history" type="button" aria-label="Abrir historial">Historial</button>
     </nav>
     <footer class="data-transfer" aria-label="Herramientas de almacenamiento">
@@ -87,7 +87,7 @@
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </footer>
   </div>
-  <script src="app.js?v=20261013-12"></script>
+  <script src="app.js?v=20261018-nav1"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
