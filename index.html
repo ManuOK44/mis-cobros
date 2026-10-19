@@ -14,6 +14,7 @@
       <h1>Estación</h1>
       <p>Resumen semanal</p>
       <p id="app-message" role="status" aria-live="polite"></p>
+      <p id="logo-storage-status" role="status" aria-live="polite" style="font-size:12px;margin:4px 0;">Comprobando almacenamiento…</p>
     </header>
     <section class="summary">
       <button id="toggle-figures" class="toggle-figures" type="button" aria-label="Ocultar cifras" aria-pressed="false" title="Ocultar o mostrar cifras"><svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle><path class="eye-slash" d="M4 4 20 20"></path></svg></button>
@@ -87,7 +88,7 @@
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </footer>
   </div>
-  <script src="app.js?v=20261019-logos1"></script>
+  <script src="app.js?v=20261019-logos2"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
