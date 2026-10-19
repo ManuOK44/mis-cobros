@@ -395,3 +395,50 @@ body.vista-negocios .payments .section-title h3{margin-bottom:0;}
 #realizar-corte{background:#166534;border:1px solid #22c55e;border-radius:10px;color:white;font-weight:700;padding:11px 13px;cursor:pointer;touch-action:manipulation}
 #realizar-corte:focus-visible{outline:2px solid #38bdf8;outline-offset:2px}
 .history-actions{display:flex;flex-wrap:wrap;gap:8px}
+
+
+/* Ajustes con respaldo y apariencia. No modifica el almacenamiento de negocios. */
+.topbar {position:relative; padding-right:56px;}
+#station-settings-button {position:absolute;right:0;top:0;width:45px;height:45px;border:1px solid #475569;border-radius:13px;background:#1e293b;color:white;font-size:23px;cursor:pointer;}
+.station-settings-overlay[hidden]{display:none!important;}
+.station-settings-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;}
+.station-settings-panel{background:#1e293b;color:#f8fafc;border:1px solid #475569;border-radius:20px;width:min(100%,390px);max-height:85dvh;overflow-y:auto;padding:20px;box-shadow:0 20px 70px #0006;}
+.station-settings-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+.station-settings-head h2{font-size:22px;}
+#station-settings-close{border:0;border-radius:10px;background:#334155;color:inherit;padding:10px 14px;font-size:18px;}
+.station-theme-setting{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:25px;}
+.station-theme-setting p{color:#94a3b8;font-size:13px;margin-top:5px;}
+.station-theme-switch{background:#475569;width:56px;height:32px;padding:3px;border:0;border-radius:25px;cursor:pointer;flex-shrink:0;}
+.station-theme-switch span{display:block;background:white;width:26px;height:26px;border-radius:50%;transition:transform .15s;}
+.station-theme-switch[aria-checked="true"]{background:#16a34a;}
+.station-theme-switch[aria-checked="true"] span{transform:translateX(24px);}
+.station-settings-panel h3{margin-bottom:8px;}
+.station-settings-note{font-size:12px;line-height:1.5;color:#94a3b8;margin:8px 0 14px;}
+.station-settings-panel .data-transfer{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
+.station-settings-panel #clear-cache{grid-column:1 / -1;margin:0;min-height:42px;font-size:13px;}
+.station-settings-panel .data-transfer button{min-width:0;}
+
+/* Tema claro de Estación: conserva verde, estructura y datos. */
+html[data-estacion-theme="light"] body{background:#f3f7f5;color:#172b22;}
+html[data-estacion-theme="light"] .topbar p,html[data-estacion-theme="light"] .card span,
+html[data-estacion-theme="light"] .info p{color:#5e7067;}
+html[data-estacion-theme="light"] .card,html[data-estacion-theme="light"] .payment-card,
+html[data-estacion-theme="light"] .modal-content,html[data-estacion-theme="light"] .bottom-nav,
+html[data-estacion-theme="light"] .station-settings-panel{background:#fff;color:#172b22;border-color:#d4e3d9;}
+html[data-estacion-theme="light"] .monthly-card{background:linear-gradient(135deg,#dcfce7,#effcf4);border:1px solid #86efac;}
+html[data-estacion-theme="light"] .monthly-card h2{color:#166534;}
+html[data-estacion-theme="light"] .monthly-card small{color:#15803d;}
+html[data-estacion-theme="light"] #search-business,html[data-estacion-theme="light"] .modal-content input,
+html[data-estacion-theme="light"] .modal-content select{background:#edf4ef;color:#172b22;}
+html[data-estacion-theme="light"] .filter-btn,html[data-estacion-theme="light"] .bottom-nav button,
+html[data-estacion-theme="light"] #back-home,html[data-estacion-theme="light"] .cancel-btn,
+html[data-estacion-theme="light"] #station-settings-close,
+html[data-estacion-theme="light"] #station-settings-button{background:#e5f0e9;color:#173829;border-color:#b9d5c4;}
+html[data-estacion-theme="light"] .bottom-nav button[aria-current="page"],
+html[data-estacion-theme="light"] .filter-btn.active{background:#15803d;color:#fff;border-color:#16a34a;}
+html[data-estacion-theme="light"] #save-history{background:#2563eb;color:white;}
+html[data-estacion-theme="light"] .edit-btn,html[data-estacion-theme="light"] .delete-btn{color:#1f3c2b;}
+html[data-estacion-theme="light"] .toggle-figures{background:#fff;color:#173829;border-color:#b9d5c4;}
+html[data-estacion-theme="light"] .station-theme-setting p,
+html[data-estacion-theme="light"] .station-settings-note{color:#62786a;}
+html[data-estacion-theme="light"] .station-settings-panel #import-data{color:white;background:#334155;}
