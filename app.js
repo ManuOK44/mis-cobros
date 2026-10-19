@@ -587,7 +587,23 @@ document.getElementById("realizar-corte").addEventListener("click", () => {
       return;
     }
     const ahora = new Date();
-    const inicio = obtenerInicioSemana(ahora);
+    let inicio = obtenerInicioSemana(ahora);
+    // Durante las primeras 6 horas del lunes se permite cerrar el domingo anterior.
+    if (ahora.getDay() === 1 && ahora.getHours() < 6) {
+      const semanaAnterior = new Date(inicio);
+      semanaAnterior.setDate(semanaAnterior.getDate() - 7);
+      const rango = (d) => d.toLocaleDateString("es-MX", {day:"numeric",month:"short"});
+      const finAnterior = new Date(inicio);
+      finAnterior.setDate(finAnterior.getDate() - 1);
+      const pregunta = "Es madrugada del lunes.\n\nAceptar: cerrar la semana anterior ("+
+        rango(semanaAnterior)+" al "+rango(finAnterior)+").\nCancelar: elegir la semana actual.";
+      if (confirm(pregunta)) {
+        inicio = semanaAnterior;
+      } else {
+        // Si cancela, mostrar segunda confirmación para evitar cortes accidentales.
+        if (!confirm("¿Quieres realizar el corte de la semana nueva? Pulsa Cancelar para salir sin guardar.")) return;
+      }
+    }
     const periodo = inicio.getFullYear()+"-"+String(inicio.getMonth()+1).padStart(2,"0")+"-"+String(inicio.getDate()).padStart(2,"0");
     const historial = JSON.parse(localStorage.getItem("historial") || "[]");
     if (!Array.isArray(historial)) throw Error("Historial inválido");
