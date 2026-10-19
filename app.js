@@ -561,23 +561,48 @@ function dibujarHistorialSemanal(historial) {
     panel.append(resumen,contenido);contenedor.append(panel);
   });
 }
-saveHistoryButton.addEventListener("click", () => {
+/* Consultar el historial no guarda ni modifica semanas anteriores. */
+function mostrarHistorialGuardado() {
   try {
-    const guardado=JSON.parse(localStorage.getItem("historial")||"[]");
-    const historial=Array.isArray(guardado)?guardado.filter(s=>s&&Array.isArray(s.negocios)):[];
-    const actuales=JSON.parse(localStorage.getItem("negocios")||"[]");
-    const hoy=new Date();
-    const inicio=obtenerInicioSemana(hoy);
-    const periodo=inicio.getFullYear()+"-"+String(inicio.getMonth()+1).padStart(2,"0")+"-"+String(inicio.getDate()).padStart(2,"0");
-    const registro={fecha:hoy.toLocaleDateString("es-MX"),periodo,negocios:Array.isArray(actuales)?actuales:[]};
-    const indice=historial.findIndex(s=>claveDeSemana(s)===periodo);
-    if(indice>=0) historial[indice]=registro; else historial.push(registro);
-    try { localStorage.setItem("historial",JSON.stringify(historial)); }
-    catch(e) {appMessage.textContent="No se pudo actualizar el historial por falta de espacio."; }
-    dibujarHistorialSemanal(historial);
-  } catch(error) {
-    console.error("No se pudo leer el historial:",error);
-    document.getElementById("history-list").innerHTML='<p class="empty-history">No se pudo leer el historial guardado.</p>';
+    const guardado = JSON.parse(localStorage.getItem("historial") || "[]");
+    dibujarHistorialSemanal(Array.isArray(guardado) ? guardado.filter(s => s && Array.isArray(s.negocios)) : []);
+  } catch (error) {
+    console.error("No se pudo leer el historial", error);
+    document.getElementById("history-list").innerHTML = '<p class="empty-history">No se pudo leer el historial guardado.</p>';
+  }
+}
+saveHistoryButton.addEventListener("click", mostrarHistorialGuardado);
+
+document.getElementById("realizar-corte").addEventListener("click", () => {
+  try {
+    const negocios = [...document.querySelectorAll(".payment-card")].map(card => ({
+      nombre: card.querySelector("h4").textContent,
+      monto: card.dataset.monto,
+      dia: card.querySelector("p").textContent.split("•")[0].trim(),
+      estado: card.querySelector(".status").textContent,
+      imagen: card.querySelector("img").dataset.logoRef || card.querySelector("img").src
+    }));
+    if (!negocios.length) {
+      appMessage.textContent = "No hay negocios para realizar el corte.";
+      return;
+    }
+    const ahora = new Date();
+    const inicio = obtenerInicioSemana(ahora);
+    const periodo = inicio.getFullYear()+"-"+String(inicio.getMonth()+1).padStart(2,"0")+"-"+String(inicio.getDate()).padStart(2,"0");
+    const historial = JSON.parse(localStorage.getItem("historial") || "[]");
+    if (!Array.isArray(historial)) throw Error("Historial inválido");
+    const indice = historial.findIndex(s => s && claveDeSemana(s) === periodo);
+    if (indice !== -1 && !confirm("Ya realizaste un corte de esta semana. ¿Quieres reemplazarlo por el estado actual de los cobros?")) return;
+    if (indice === -1 && !confirm("¿Realizar el corte de esta semana? Se guardarán los negocios cobrados y pendientes tal como están ahora.")) return;
+    const corte = {fecha: ahora.toLocaleDateString("es-MX"), periodo, fechaCorte: ahora.toISOString(), negocios};
+    if (indice >= 0) historial[indice] = corte;
+    else historial.push(corte);
+    localStorage.setItem("historial", JSON.stringify(historial));
+    mostrarHistorialGuardado();
+    appMessage.textContent = "Corte realizado y guardado correctamente.";
+  } catch (error) {
+    console.error("Error al realizar corte:", error);
+    appMessage.textContent = "No se pudo guardar el corte. Comprueba el espacio disponible.";
   }
 });
 
