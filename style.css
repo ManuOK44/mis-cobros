@@ -365,3 +365,28 @@ body.hide-figures .eye-icon .eye-slash { display: block; }
 .bottom-nav button[aria-current="page"]{background:#2563eb;border-color:#3b82f6;}
 body.vista-negocios .filters,body.vista-negocios .bulk-actions{display:none;}
 body.vista-negocios .payments .section-title h3{margin-bottom:0;}
+
+/* Historial de cobros por semana */
+#history-list{display:grid;gap:13px;}
+.historial-semana{background:#1e293b;border-radius:18px;overflow:hidden;color:#f8fafc}
+.historial-semana>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px}
+.historial-semana>summary::-webkit-details-marker{display:none}
+.historial-titulo{display:flex;flex-direction:column;gap:5px;min-width:0}
+.historial-titulo strong{font-size:16px}
+.historial-titulo small,.historial-negocio small{color:#94a3b8;font-size:12px}
+.historial-flecha{font-size:24px;color:#94a3b8;transition:transform .2s}
+.historial-semana[open] .historial-flecha{transform:rotate(180deg)}
+.historial-contenido{padding:0 15px 14px}
+.historial-totales{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.historial-total{border-radius:12px;padding:13px 11px;min-width:0;display:flex;flex-direction:column;gap:5px}
+.historial-total small{font-size:12px}
+.historial-total strong{font-size:20px;overflow-wrap:anywhere}
+.historial-total.cobrado{background:#133d32;color:#86efac}
+.historial-total.pendiente{background:#49321e;color:#fcd34d}
+.historial-negocio{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #334155;padding:12px 0}
+.historial-negocio-datos{display:flex;flex-direction:column;gap:5px;min-width:0}
+.historial-negocio-datos strong{font-size:14px;overflow-wrap:anywhere}
+.historial-estado{font-size:12px;font-weight:700;white-space:nowrap}
+.historial-estado.cobrado{color:#4ade80}
+.historial-estado.pendiente{color:#fbbf24}
+@media(max-width:375px){.historial-estado{font-size:11px}.historial-total strong{font-size:17px}}
