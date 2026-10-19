@@ -44,6 +44,106 @@ if (toggleFiguresButton) {
   });
 }
 
+
+/* Logos en IndexedDB. Cobros e historial permanecen en localStorage.
+   Las referencias tienen formato idb-logo:<identificador>; los respaldos
+   siguen exportando imágenes completas para conservar compatibilidad. */
+const LOGOS_DB = "estacion-logos-v1";
+const LOGO_PREFIX = "idb-logo:";
+function abrirAlmacenLogos() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) return reject(new Error("IndexedDB no disponible"));
+    const req = indexedDB.open(LOGOS_DB, 1);
+    req.onupgradeneeded = () => {
+      if (!req.result.objectStoreNames.contains("logos")) req.result.createObjectStore("logos");
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error("No se pudo abrir IndexedDB"));
+  });
+}
+async function ejecutarLogo(tipo, clave, contenido) {
+  const db = await abrirAlmacenLogos();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("logos", tipo === "get" ? "readonly" : "readwrite");
+    const store = tx.objectStore("logos");
+    const req = tipo === "get" ? store.get(clave) : store.put(contenido, clave);
+    let resultado;
+    req.onsuccess = () => { resultado = req.result; };
+    tx.oncomplete = () => { db.close(); resolve(resultado); };
+    tx.onerror = () => { const e = tx.error; db.close(); reject(e || new Error("Error al guardar logo")); };
+    tx.onabort = () => { const e = tx.error; db.close(); reject(e || new Error("Guardado cancelado")); };
+  });
+}
+function esReferenciaLogo(src) { return typeof src === "string" && src.startsWith(LOGO_PREFIX); }
+async function guardarLogo(src) {
+  if (!src || esReferenciaLogo(src) || !src.startsWith("data:image/")) return src || "";
+  const clave = LOGO_PREFIX + (crypto.randomUUID ? crypto.randomUUID() : Date.now()+"-"+Math.random().toString(36).slice(2));
+  await ejecutarLogo("put", clave, src);
+  return clave;
+}
+async function resolverLogo(src) {
+  return esReferenciaLogo(src) ? (await ejecutarLogo("get", src) || "") : (src || "");
+}
+function mostrarLogo(img, src) {
+  if (!img) return;
+  img.dataset.logoRef = src || "";
+  if (!esReferenciaLogo(src)) { img.src = src || "https://via.placeholder.com/50"; return; }
+  img.removeAttribute("src");
+  resolverLogo(src).then(valor => {
+    if (img.dataset.logoRef === src) img.src = valor || "https://via.placeholder.com/50";
+  }).catch(error => {
+    console.error("No se pudo cargar logo:", error);
+    if (img.dataset.logoRef === src) img.alt = "Logo no disponible";
+  });
+}
+async function convertirLogosDatos(datos) {
+  const conversiones = new Map();
+  const convertir = async item => {
+    if (!item || typeof item.imagen !== "string" || !item.imagen.startsWith("data:image/")) return;
+    if (!conversiones.has(item.imagen)) conversiones.set(item.imagen, await guardarLogo(item.imagen));
+    item.imagen = conversiones.get(item.imagen);
+  };
+  for (const n of datos.negocios || []) await convertir(n);
+  for (const semana of datos.historial || []) for (const n of semana.negocios || []) await convertir(n);
+}
+async function exportarImagenes(datos) {
+  const cache = new Map();
+  const restaurar = async n => {
+    if (!n || !esReferenciaLogo(n.imagen)) return;
+    if (!cache.has(n.imagen)) {
+      const original = await resolverLogo(n.imagen);
+      if (!original) throw new Error("Falta un logo en el almacenamiento");
+      cache.set(n.imagen, original);
+    }
+    n.imagen = cache.get(n.imagen);
+  };
+  for (const n of datos.negocios || []) await restaurar(n);
+  for (const semana of datos.historial || []) for (const n of semana.negocios || []) await restaurar(n);
+}
+async function migrarLogosExistentes() {
+  const negocios = JSON.parse(localStorage.getItem("negocios") || "[]");
+  const historial = JSON.parse(localStorage.getItem("historial") || "[]");
+  if (!Array.isArray(negocios) || !Array.isArray(historial)) return;
+  const hayImagenesViejas = [...negocios, ...historial.flatMap(s => s.negocios || [])]
+    .some(n => n && typeof n.imagen === "string" && n.imagen.startsWith("data:image/"));
+  if (!hayImagenesViejas) return;
+  await convertirLogosDatos({negocios, historial});
+  // Solo sustituimos los registros después de que todas las imágenes
+  // se hayan escrito con éxito en IndexedDB.
+  const prevNegocios = localStorage.getItem("negocios");
+  const prevHistorial = localStorage.getItem("historial");
+  try {
+    localStorage.setItem("negocios", JSON.stringify(negocios));
+    localStorage.setItem("historial", JSON.stringify(historial));
+  } catch (error) {
+    if (prevNegocios === null) localStorage.removeItem("negocios");
+    else localStorage.setItem("negocios", prevNegocios);
+    if (prevHistorial === null) localStorage.removeItem("historial");
+    else localStorage.setItem("historial", prevHistorial);
+    throw error;
+  }
+}
+
 /* ===================== GUARDAR ===================== */
 function guardarEstados() {
   const datos = [];
@@ -54,7 +154,7 @@ function guardarEstados() {
       monto: card.dataset.monto,
       dia: card.querySelector("p").textContent.split("•")[0].trim(),
       estado: card.querySelector(".status").textContent,
-      imagen: card.querySelector("img").src
+      imagen: card.querySelector("img").dataset.logoRef || card.querySelector("img").src
     });
   });
 
@@ -81,6 +181,7 @@ function crearTarjeta(nombre, monto, dia, estado, imagen) {
   `;
 
   paymentsSection.appendChild(card);
+  mostrarLogo(card.querySelector("img"), imagen);
   activarEstado(card.querySelector(".status"));
 }
 
@@ -280,7 +381,7 @@ function obtenerImagen() {
   const file = imageInput.files[0];
 
   if (!file) {
-      optimizarImagen(tarjetaEditando ? tarjetaEditando.querySelector("img").src : "").then(resolve, reject);
+      resolve(tarjetaEditando ? (tarjetaEditando.querySelector("img").dataset.logoRef || tarjetaEditando.querySelector("img").src) : "");
       return;
   }
 
@@ -310,13 +411,14 @@ saveButton.addEventListener("click", async () => {
   appMessage.textContent = "Guardando…";
   try {
     const img = await obtenerImagen();
+    const referenciaImagen = await guardarLogo(img);
     if (tarjetaEditando) {
       tarjetaEditando.querySelector("h4").textContent = name;
       tarjetaEditando.querySelector("p").textContent = `${day} • $${amount}`;
       tarjetaEditando.dataset.monto = amount;
-      tarjetaEditando.querySelector("img").src = img;
+      mostrarLogo(tarjetaEditando.querySelector("img"), referenciaImagen);
     } else {
-      crearTarjeta(name, amount, day, "Pendiente", img);
+      crearTarjeta(name, amount, day, "Pendiente", referenciaImagen);
     }
 
     guardarEstados();
@@ -471,7 +573,12 @@ backHomeButton.addEventListener("click", () => {
 });
 
 /* ===================== INIT ===================== */
-try { cargarEstados(); } catch (error) { console.error("No se pudieron cargar los negocios:", error); appMessage.textContent = "No se pudieron cargar los datos guardados."; }
+migrarLogosExistentes().catch(error => {
+  console.error("No se pudieron migrar los logos:", error);
+  appMessage.textContent = "No se pudieron migrar algunos logos. Tus datos originales se conservaron.";
+}).finally(() => {
+  try { cargarEstados(); } catch (error) { console.error("No se pudieron cargar los negocios:", error); appMessage.textContent = "No se pudieron cargar los datos guardados."; }
+});
 actualizarGananciaMensual();
 /* ===================== NAVEGACIÓN PRINCIPAL ===================== */
 const vistasEstacion = {
@@ -525,6 +632,7 @@ exportDataButton?.addEventListener("click", async () => {
     if (!Array.isArray(backup.negocios) || !Array.isArray(backup.historial)) {
       throw new Error("Los datos guardados no tienen un formato válido.");
     }
+    await exportarImagenes(backup);
     const fecha = new Date().toISOString().slice(0, 10);
     const archivo = new File([JSON.stringify(backup)], `respaldo-estacion-${fecha}.json`, { type: "application/json" });
     if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
@@ -565,6 +673,8 @@ importFileInput?.addEventListener("change", async () => {
     const historialActual = JSON.parse(localStorage.getItem("historial") || "[]");
     if ((negociosActuales.length || historialActual.length) &&
         !confirm("Esta app ya tiene datos. ¿Quieres reemplazarlos con el respaldo seleccionado?")) return;
+    // Copia nueva: se preserva el archivo original del usuario.
+    await convertirLogosDatos(respaldo);
     const anteriorNegocios = localStorage.getItem("negocios");
     const anteriorHistorial = localStorage.getItem("historial");
     try {
