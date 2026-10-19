@@ -572,11 +572,38 @@ backHomeButton.addEventListener("click", () => {
   document.querySelector(".payments").style.display = "block";
 });
 
+/* Confirmación visible del estado de almacenamiento de logos. */
+async function confirmarAlmacenamientoLogos() {
+  const indicador = document.getElementById("logo-storage-status");
+  if (!indicador) return;
+  try {
+    const negocios = JSON.parse(localStorage.getItem("negocios") || "[]");
+    const historial = JSON.parse(localStorage.getItem("historial") || "[]");
+    const registros = [...negocios, ...historial.flatMap(s => Array.isArray(s.negocios) ? s.negocios : [])];
+    const logos = [...new Set(registros.map(n => n?.imagen).filter(x => typeof x === "string" && x.startsWith("data:image/") || esReferenciaLogo(x)))];
+    if (logos.some(x => !esReferenciaLogo(x))) throw new Error("Hay logos pendientes de migración");
+    for (const ref of logos) {
+      if (!(await resolverLogo(ref))) throw new Error("Un logo no se pudo recuperar");
+    }
+    // Una escritura y lectura real confirma que IndexedDB funciona aun si no hay logos.
+    const prueba = "idb-logo:prueba-almacenamiento";
+    await ejecutarLogo("put", prueba, "ok");
+    if ((await ejecutarLogo("get", prueba)) !== "ok") throw new Error("La prueba de lectura falló");
+    indicador.textContent = "✓ Almacenamiento actualizado";
+    indicador.style.color = "#22c55e";
+  } catch (error) {
+    console.error("No se pudo confirmar almacenamiento:", error);
+    indicador.textContent = "Almacenamiento pendiente de verificar";
+    indicador.style.color = "#eab308";
+  }
+}
+
 /* ===================== INIT ===================== */
 migrarLogosExistentes().catch(error => {
   console.error("No se pudieron migrar los logos:", error);
   appMessage.textContent = "No se pudieron migrar algunos logos. Tus datos originales se conservaron.";
-}).finally(() => {
+}).finally(async () => {
+  await confirmarAlmacenamientoLogos();
   try { cargarEstados(); } catch (error) { console.error("No se pudieron cargar los negocios:", error); appMessage.textContent = "No se pudieron cargar los datos guardados."; }
 });
 actualizarGananciaMensual();
