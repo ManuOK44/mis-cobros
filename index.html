@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estación</title>
-  <link rel="stylesheet" href="style.css?v=20261019-corte1">
+  <link rel="stylesheet" href="style.css?v=20261019-ajustes1">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
 </head>
 <body>
   <div class="app">
     <header class="topbar">
+      <button id="station-settings-button" type="button" aria-label="Abrir ajustes" title="Ajustes">⚙️</button>
       <h1>Estación</h1>
       <p>Resumen semanal</p>
       <p id="app-message" role="status" aria-live="polite"></p>
@@ -76,20 +77,62 @@
       </div>
       <div id="history-list"></div>
     </section>
-    <nav class="bottom-nav">
-      <button id="nav-inicio" type="button" aria-current="page">Inicio</button>
-      <button id="nav-cobros" type="button">Cobros</button>
-      <button id="nav-negocios" type="button">Negocios</button>
-      <button id="save-history" type="button" aria-label="Abrir historial">Historial</button>
-    </nav>
+    <div class="station-settings-overlay" id="station-settings-overlay" hidden>
+      <section class="station-settings-panel" role="dialog" aria-modal="true" aria-labelledby="station-settings-title">
+        <div class="station-settings-head"><h2 id="station-settings-title">⚙️ Ajustes</h2><button id="station-settings-close" type="button" aria-label="Cerrar ajustes">✕</button></div>
+        <div class="station-theme-setting">
+          <div><strong>Apariencia</strong><p id="station-theme-caption">Modo oscuro</p></div>
+          <button id="station-theme-switch" class="station-theme-switch" type="button" role="switch" aria-checked="false" aria-label="Activar modo claro"><span></span></button>
+        </div>
+        <h3>Respaldos</h3>
+        <p class="station-settings-note">Guarda tus negocios e historial en un archivo. Importar puede reemplazar los registros actuales.</p>
     <footer class="data-transfer" aria-label="Herramientas de almacenamiento">
       <button id="clear-cache" type="button">Borrar caché</button>
       <button id="export-data" type="button">Exportar respaldo</button>
       <button id="import-data" type="button">Importar respaldo</button>
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </footer>
+        <p class="station-settings-note">Guarda tu respaldo en Archivos antes de borrar datos o cambiar de teléfono.</p>
+      </section>
+    </div>
+    <nav class="bottom-nav">
+      <button id="nav-inicio" type="button" aria-current="page">Inicio</button>
+      <button id="nav-cobros" type="button">Cobros</button>
+      <button id="nav-negocios" type="button">Negocios</button>
+      <button id="save-history" type="button" aria-label="Abrir historial">Historial</button>
+    </nav>
+
   </div>
   <script src="app.js?v=20261019-corte3"></script>
+
+  <script>
+  (() => {
+    const root = document.documentElement;
+    const overlay = document.getElementById("station-settings-overlay");
+    const openBtn = document.getElementById("station-settings-button");
+    const closeBtn = document.getElementById("station-settings-close");
+    const themeBtn = document.getElementById("station-theme-switch");
+    const themeCaption = document.getElementById("station-theme-caption");
+    const themeKey = "estacionTema";
+    function applyTheme(light) {
+      root.setAttribute("data-estacion-theme", light ? "light" : "dark");
+      themeBtn.setAttribute("aria-checked", String(light));
+      themeBtn.setAttribute("aria-label", light ? "Activar modo oscuro" : "Activar modo claro");
+      themeCaption.textContent = light ? "Modo claro" : "Modo oscuro";
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", light ? "#f3f7f5" : "#0f172a");
+    }
+    applyTheme(localStorage.getItem(themeKey) === "light");
+    openBtn.addEventListener("click", () => { overlay.hidden = false; closeBtn.focus(); });
+    closeBtn.addEventListener("click", () => { overlay.hidden = true; openBtn.focus(); });
+    overlay.addEventListener("click", e => { if(e.target === overlay) overlay.hidden = true; });
+    document.addEventListener("keydown", e => { if(e.key === "Escape" && !overlay.hidden) overlay.hidden = true; });
+    themeBtn.addEventListener("click", () => {
+      const light = root.getAttribute("data-estacion-theme") !== "light";
+      localStorage.setItem(themeKey, light ? "light" : "dark");
+      applyTheme(light);
+    });
+  })();
+  </script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
