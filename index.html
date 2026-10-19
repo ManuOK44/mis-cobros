@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estación</title>
-  <link rel="stylesheet" href="style.css?v=20261019-historial1">
+  <link rel="stylesheet" href="style.css?v=20261019-corte1">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
 </head>
@@ -69,6 +69,7 @@
       <div class="section-title">
         <h3>Historial semanal</h3>
         <div class="history-actions">
+          <button id="realizar-corte" type="button">Realizar corte</button>
           <button id="clear-history" type="button">Borrar historial</button>
           <button id="back-home">Volver</button>
         </div>
@@ -88,7 +89,7 @@
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </footer>
   </div>
-  <script src="app.js?v=20261019-historial1"></script>
+  <script src="app.js?v=20261019-corte1"></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
