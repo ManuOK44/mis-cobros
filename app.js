@@ -532,6 +532,17 @@ function dibujarHistorialSemanal(historial) {
     const nombre = document.createElement("strong"); nombre.textContent = titulo;
     const cantidad = document.createElement("small"); cantidad.textContent = negocios.length + " negocios registrados";
     encabezado.append(nombre,cantidad);
+    // La fechaCorte se guarda al realizar el corte; no cambia al consultar el historial.
+    if (semana.fechaCorte) {
+      const instante = new Date(semana.fechaCorte);
+      if (!Number.isNaN(instante.getTime())) {
+        const hora = document.createElement("small");
+        hora.textContent = "Corte realizado: " + instante.toLocaleTimeString("es-MX", {
+          hour: "numeric", minute: "2-digit", hour12: true
+        }).replace(/a\\.\\s?m\\./gi,"a. m.").replace(/p\\.\\s?m\\./gi,"p. m.");
+        encabezado.append(hora);
+      }
+    }
     const flecha = document.createElement("span"); flecha.className="historial-flecha";flecha.textContent="⌄";
     resumen.append(encabezado,flecha);
     const contenido = document.createElement("div"); contenido.className="historial-contenido";
