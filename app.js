@@ -500,61 +500,84 @@ document.getElementById("search-business").addEventListener("input", (e) => {
 });
 
 /* ===================== HISTORIAL ===================== */
-saveHistoryButton.addEventListener("click", () => {
-  const historyList = document.getElementById("history-list");
-  const historyView = document.getElementById("history-view");
-  const payments = document.querySelector(".payments");
-
-  payments.style.display = "none";
-  historyView.style.display = "block";
-  historyList.innerHTML = "";
-
-  try {
-    const historialGuardado = JSON.parse(localStorage.getItem("historial") || "[]");
-    const historial = Array.isArray(historialGuardado)
-      ? historialGuardado.filter((semana) => semana && Array.isArray(semana.negocios))
-      : [];
-
-    const negociosGuardados = JSON.parse(localStorage.getItem("negocios") || "[]");
-    const negociosSemana = Array.isArray(negociosGuardados) ? negociosGuardados : [];
-    const ahora = new Date(); const fecha = ahora.toLocaleDateString("es-MX");
-    const inicioSemana = obtenerInicioSemana(ahora);
-    const periodo = inicioSemana.getFullYear()+"-"+String(inicioSemana.getMonth()+1).padStart(2,"0")+"-"+String(inicioSemana.getDate()).padStart(2,"0");
-    const indiceSemana = historial.findIndex((semana) => {
-      const fechaSemana = obtenerFechaRegistro(semana); if (!fechaSemana) return false;
-      const inicio = semana.periodo ? semana.periodo : (() => { const f=obtenerInicioSemana(fechaSemana); return f.getFullYear()+"-"+String(f.getMonth()+1).padStart(2,"0")+"-"+String(f.getDate()).padStart(2,"0"); })();
-      return inicio === periodo;
-    });
-    const registroSemana = { fecha, periodo, negocios: negociosSemana };
-    if (indiceSemana >= 0) historial[indiceSemana] = registroSemana; else historial.push(registroSemana);
-    try { localStorage.setItem("historial", JSON.stringify(historial)); }
-    catch (error) { appMessage.textContent = "No se pudo guardar esta semana por falta de espacio, pero puedes ver el historial existente."; }
-    actualizarGananciaMensual();
-    if (historial.length === 0) {
-      historyList.innerHTML = '<p class="empty-history">No hay semanas guardadas en el historial.</p>';
-      return;
+const pesosHistorial = n => Number(n || 0).toLocaleString("es-MX", {style:"currency",currency:"MXN"});
+function dibujarHistorialSemanal(historial) {
+  const contenedor = document.getElementById("history-list");
+  contenedor.replaceChildren();
+  if (!historial.length) {
+    contenedor.innerHTML = '<p class="empty-history">No hay semanas guardadas en el historial.</p>';
+    return;
+  }
+  const actuales = [...historial].sort((a,b) => String(claveDeSemana(b) || b.fecha || "").localeCompare(String(claveDeSemana(a) || a.fecha || "")));
+  actuales.forEach((semana, indice) => {
+    const negocios = semana.negocios || [];
+    const cobrado = negocios.filter(n => n.estado === "Cobrado");
+    const pendiente = negocios.filter(n => n.estado !== "Cobrado");
+    const sumar = items => items.reduce((total,n) => total + (Number(String(n.monto ?? 0).replace(/[$,\\s]/g,"")) || 0),0);
+    const inicioClave = claveDeSemana(semana);
+    let titulo = semana.fecha || "Semana guardada";
+    if (inicioClave) {
+      const inicio = new Date(inicioClave + "T12:00:00");
+      const fin = new Date(inicio);
+      fin.setDate(fin.getDate()+6);
+      const formato = d => d.toLocaleDateString("es-MX",{day:"numeric",month:"short"});
+      titulo = "Semana del " + formato(inicio) + " al " + formato(fin);
     }
-
-    historial.forEach((semana) => {
-      const card = document.createElement("div");
-      card.classList.add("card");
-
-      const titulo = document.createElement("h4");
-      titulo.textContent = semana.fecha || "Semana guardada";
-      card.appendChild(titulo);
-
-      semana.negocios.forEach((negocio) => {
-        const detalle = document.createElement("p");
-        detalle.style.color = "#94a3b8";
-        detalle.textContent = `${negocio.nombre || "Negocio"} • ${negocio.dia || ""} • $${negocio.monto || 0}`;
-        card.appendChild(detalle);
+    const panel = document.createElement("details");
+    panel.className = "historial-semana";
+    if(indice === 0) panel.open = true;
+    const resumen = document.createElement("summary");
+    const encabezado = document.createElement("div");
+    encabezado.className = "historial-titulo";
+    const nombre = document.createElement("strong"); nombre.textContent = titulo;
+    const cantidad = document.createElement("small"); cantidad.textContent = negocios.length + " negocios registrados";
+    encabezado.append(nombre,cantidad);
+    const flecha = document.createElement("span"); flecha.className="historial-flecha";flecha.textContent="⌄";
+    resumen.append(encabezado,flecha);
+    const contenido = document.createElement("div"); contenido.className="historial-contenido";
+    const totales = document.createElement("div"); totales.className="historial-totales";
+    for(const [texto,monto,clase] of [["Cobrado",sumar(cobrado),"cobrado"],["Pendiente",sumar(pendiente),"pendiente"]]){
+      const box=document.createElement("div");box.className="historial-total "+clase;
+      const etiqueta=document.createElement("small");etiqueta.textContent=texto;
+      const cifra=document.createElement("strong");cifra.textContent=pesosHistorial(monto);
+      box.append(etiqueta,cifra);totales.append(box);
+    }
+    contenido.append(totales);
+    // Ordenados por estado, sin modificar los registros originales.
+    for(const grupo of [cobrado,pendiente]){
+      grupo.forEach(negocio=>{
+        const fila=document.createElement("div");fila.className="historial-negocio";
+        const datos=document.createElement("div");datos.className="historial-negocio-datos";
+        const nombre=document.createElement("strong");nombre.textContent=negocio.nombre || "Negocio";
+        const detalle=document.createElement("small");detalle.textContent=(negocio.dia || "")+" · "+pesosHistorial(Number(String(negocio.monto ?? 0).replace(/[$,\\s]/g,"")) || 0);
+        datos.append(nombre,detalle);
+        const estado=document.createElement("span");
+        const pagado=negocio.estado==="Cobrado";
+        estado.className="historial-estado "+(pagado?"cobrado":"pendiente");
+        estado.textContent=pagado?"✓ Cobrado":"◷ Pendiente";
+        fila.append(datos,estado);contenido.append(fila);
       });
-
-      historyList.appendChild(card);
-    });
-  } catch (error) {
-    console.error("No se pudo leer el historial:", error);
-    historyList.innerHTML = '<p class="empty-history">No se pudo leer el historial guardado. Puedes borrarlo e intentarlo de nuevo.</p>';
+    }
+    panel.append(resumen,contenido);contenedor.append(panel);
+  });
+}
+saveHistoryButton.addEventListener("click", () => {
+  try {
+    const guardado=JSON.parse(localStorage.getItem("historial")||"[]");
+    const historial=Array.isArray(guardado)?guardado.filter(s=>s&&Array.isArray(s.negocios)):[];
+    const actuales=JSON.parse(localStorage.getItem("negocios")||"[]");
+    const hoy=new Date();
+    const inicio=obtenerInicioSemana(hoy);
+    const periodo=inicio.getFullYear()+"-"+String(inicio.getMonth()+1).padStart(2,"0")+"-"+String(inicio.getDate()).padStart(2,"0");
+    const registro={fecha:hoy.toLocaleDateString("es-MX"),periodo,negocios:Array.isArray(actuales)?actuales:[]};
+    const indice=historial.findIndex(s=>claveDeSemana(s)===periodo);
+    if(indice>=0) historial[indice]=registro; else historial.push(registro);
+    try { localStorage.setItem("historial",JSON.stringify(historial)); }
+    catch(e) {appMessage.textContent="No se pudo actualizar el historial por falta de espacio."; }
+    dibujarHistorialSemanal(historial);
+  } catch(error) {
+    console.error("No se pudo leer el historial:",error);
+    document.getElementById("history-list").innerHTML='<p class="empty-history">No se pudo leer el historial guardado.</p>';
   }
 });
 
