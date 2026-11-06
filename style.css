@@ -476,3 +476,18 @@ html[data-estacion-theme="light"] .capital-summary-card {background:#fff;border-
 html[data-estacion-theme="light"] .capital-summary-card h2 {color:#15803d;}
 html[data-estacion-theme="light"] .capital-summary-card small {color:#5e7067;}
 html[data-estacion-theme="light"] .capital-top-button {background:#15803d;border-color:#16a34a;color:#fff;}
+
+/* Botón Capital compacto en la parte superior */
+.capital-top-button {
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  width:auto;
+  min-height:40px;
+  gap:7px;
+  padding:9px 14px;
+  margin:0 0 16px;
+  border-radius:10px;
+  font-size:14px;
+}
+.capital-top-button span {font-size:18px;line-height:1;}
