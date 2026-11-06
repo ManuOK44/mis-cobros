@@ -442,3 +442,37 @@ html[data-estacion-theme="light"] .toggle-figures{background:#fff;color:#173829;
 html[data-estacion-theme="light"] .station-theme-setting p,
 html[data-estacion-theme="light"] .station-settings-note{color:#62786a;}
 html[data-estacion-theme="light"] .station-settings-panel #import-data{color:white;background:#334155;}
+
+
+/* Capital en la parte superior y saldo debajo de la tarjeta mensual */
+.capital-top-button {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:50px;
+  padding:13px 17px;
+  margin:0 0 16px;
+  border:1px solid #22c55e;
+  border-radius:13px;
+  background:#166534;
+  color:#fff;
+  font-size:16px;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:0 3px 10px rgba(0,0,0,.12);
+  touch-action:manipulation;
+}
+.capital-top-button span {font-size:25px;line-height:18px;}
+.capital-top-button:focus-visible {outline:2px solid #38bdf8;outline-offset:3px;}
+.capital-summary-card {
+  grid-column:1 / -1;
+  border:1px solid #475569;
+  background:#1e293b;
+}
+.capital-summary-card h2 {color:#86efac;font-size:27px;overflow-wrap:anywhere;}
+.capital-summary-card small {display:block;margin-top:6px;color:#94a3b8;font-size:12px;}
+html[data-estacion-theme="light"] .capital-summary-card {background:#fff;border-color:#cbd5e1;}
+html[data-estacion-theme="light"] .capital-summary-card h2 {color:#15803d;}
+html[data-estacion-theme="light"] .capital-summary-card small {color:#5e7067;}
+html[data-estacion-theme="light"] .capital-top-button {background:#15803d;border-color:#16a34a;color:#fff;}
