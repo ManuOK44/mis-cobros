@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Capital · Estación</title>
+<style>
+:root{color-scheme:dark;--bg:#0f172a;--panel:#1e293b;--text:#f8fafc;--muted:#94a3b8;--green:#22c55e;--field:#111c31;--border:#475569}
+:root[data-estacion-theme=light]{color-scheme:light;--bg:#f3f7f5;--panel:#fff;--text:#142539;--muted:#526477;--green:#16a34a;--field:#f6faf8;--border:#cbd5e1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100dvh}
+main{width:min(100% - 32px,560px);margin:auto;padding:28px 0 85px}
+.back{color:var(--green);display:inline-block;text-decoration:none;font-weight:700;padding:12px 0}
+h1{font-size:30px;margin:20px 0 5px}
+.subtitle{color:var(--muted);margin:0 0 25px}
+.card{background:var(--panel);border-radius:20px;padding:24px;margin-top:20px}
+.muted{color:var(--muted)}
+.total{font-size:clamp(32px,9vw,46px);font-weight:800;color:#86efac;margin:10px 0 26px;overflow-wrap:anywhere}
+:root[data-estacion-theme=light] .total{color:#15803d}
+label{display:block;margin-bottom:10px;font-weight:700}
+input{background:var(--field);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:20px;padding:15px;width:100%}
+button{width:100%;border:0;background:var(--green);color:#062a14;border-radius:12px;padding:15px;font:inherit;font-weight:800;margin-top:16px;cursor:pointer}
+.help{font-size:13px;line-height:1.6;color:var(--muted)}
+#status{min-height:22px;font-size:14px;color:var(--green);margin:15px 0 0}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">← Volver a Estación</a>
+<h1>Capital</h1>
+<p class="subtitle">Registro manual de tu capital disponible</p>
+<section class="card">
+<div class="muted">Capital actual</div>
+<div class="total" id="total">$0.00</div>
+<form id="form">
+<label for="amount">¿Cuánto capital tienes? (MXN)</label>
+<input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" required>
+<button type="submit">Guardar capital</button>
+</form>
+<div id="status" role="status" aria-live="polite"></div>
+<p class="help">Solo se registra la cantidad que tú escribas. Al guardar, el monto anterior se reemplaza. No se calcula ni se mezcla con los cobros, negocios, ganancias o historial de Estación.</p>
+<p class="help">El capital se guarda únicamente en este navegador y dispositivo. No se sincroniza automáticamente y puede perderse al borrar los datos del navegador.</p>
+</section>
+</main>
+<script>
+(function(){
+const key='estacion_capital_manual_v1',field=document.getElementById('amount'),total=document.getElementById('total'),status=document.getElementById('status');
+try{document.documentElement.setAttribute('data-estacion-theme',localStorage.getItem('estacionTema')==='light'?'light':'dark');}catch(e){}
+const money=n=>n.toLocaleString('es-MX',{style:'currency',currency:'MXN'});
+function show(){const n=Number(localStorage.getItem(key));total.textContent=money(Number.isFinite(n)&&n>=0?n:0)}
+try{show()}catch(e){total.textContent=money(0);status.textContent='No se pudo leer el capital guardado.'}
+document.getElementById('form').addEventListener('submit',function(e){
+e.preventDefault();const val=field.value.trim(),n=Number(val);
+if(!val||!Number.isFinite(n)||n<0){status.textContent='Ingresa una cantidad válida.';return}
+try{localStorage.setItem(key,String(n));show();field.value='';status.textContent='Capital guardado correctamente.'}
+catch(e){status.textContent='No fue posible guardar el capital en este navegador.'}
+});
+})();
+</script>
+</body></html>
