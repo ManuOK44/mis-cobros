@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estación</title>
-  <link rel="stylesheet" href="style.css?v=20261019-ajustes1">
+  <link rel="stylesheet" href="style.css?v=20261107-colores1">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
 </head>
@@ -84,7 +84,10 @@
           <div><strong>Apariencia</strong><p id="station-theme-caption">Modo oscuro</p></div>
           <button id="station-theme-switch" class="station-theme-switch" type="button" role="switch" aria-checked="false" aria-label="Activar modo claro"><span></span></button>
         </div>
-        <h3>Respaldos</h3>
+        <h3>Colores</h3>
+<p class="station-settings-note">Elige el color de Estación. El verde de siempre sigue disponible.</p>
+<div id="station-palette-options" class="station-palette-grid" role="group" aria-label="Colores de Estación"></div>
+<h3>Respaldos</h3>
         <p class="station-settings-note">Guarda tus negocios e historial en un archivo. Importar puede reemplazar los registros actuales.</p>
     <footer class="data-transfer" aria-label="Herramientas de almacenamiento">
       <button id="clear-cache" type="button">Borrar caché</button>
@@ -115,6 +118,29 @@
     const themeBtn = document.getElementById("station-theme-switch");
     const themeCaption = document.getElementById("station-theme-caption");
     const themeKey = "estacionTema";
+    const paletteKey = "estacionColor";
+    const paletteOptions = [["green","Verde","#22c55e"],["blue","Azul","#3b82f6"],["purple","Morado","#a855f7"],["red","Rojo","#ef4444"],["orange","Naranja","#f97316"],["pink","Rosa","#ec4899"],["teal","Turquesa","#14b8a6"]];
+    const paletteBox = document.getElementById("station-palette-options");
+    function applyPalette(value) {
+      const selected = paletteOptions.some(p=>p[0]===value) ? value : "green";
+      root.setAttribute("data-estacion-color",selected);
+      paletteBox.innerHTML = "";
+      for (const [key,label,color] of paletteOptions) {
+        const button=document.createElement("button");
+        button.type="button";
+        button.className="station-palette-choice"+(key===selected?" selected":"");
+        button.setAttribute("aria-pressed",String(key===selected));
+        const dot=document.createElement("span");
+        dot.className="station-palette-dot";
+        dot.style.background=color;
+        const name=document.createElement("span");
+        name.textContent=label;
+        button.append(dot,name);
+        button.addEventListener("click",()=>{localStorage.setItem(paletteKey,key);applyPalette(key)});
+        paletteBox.append(button);
+      }
+    }
+    applyPalette(localStorage.getItem(paletteKey)||"green");
     function applyTheme(light) {
       root.setAttribute("data-estacion-theme", light ? "light" : "dark");
       themeBtn.setAttribute("aria-checked", String(light));
