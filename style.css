@@ -442,3 +442,29 @@ html[data-estacion-theme="light"] .toggle-figures{background:#fff;color:#173829;
 html[data-estacion-theme="light"] .station-theme-setting p,
 html[data-estacion-theme="light"] .station-settings-note{color:#62786a;}
 html[data-estacion-theme="light"] .station-settings-panel #import-data{color:white;background:#334155;}
+
+/* Selector de color: el verde predeterminado no altera los estilos existentes. */
+.station-palette-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0 23px}
+.station-palette-choice{display:flex;align-items:center;gap:9px;min-width:0;min-height:47px;padding:10px;border:1px solid #475569;border-radius:12px;background:#334155;color:#fff;font-size:13px;font-weight:700;text-align:left;cursor:pointer}
+.station-palette-dot{width:21px;height:21px;flex:none;border:2px solid #ffffff55;border-radius:50%}
+.station-palette-choice.selected{outline:2px solid var(--station-accent,#22c55e);outline-offset:1px}
+html[data-estacion-theme="light"] .station-palette-choice{background:#e5f0e9;color:#173829;border-color:#b9d5c4}
+html[data-estacion-color="blue"]{--station-accent:#2563eb;--station-deep:#1e40af;--station-soft:#bfdbfe;--station-light:#dbeafe;--station-text:#1e40af}
+html[data-estacion-color="purple"]{--station-accent:#9333ea;--station-deep:#6b21a8;--station-soft:#e9d5ff;--station-light:#f3e8ff;--station-text:#6b21a8}
+html[data-estacion-color="red"]{--station-accent:#dc2626;--station-deep:#991b1b;--station-soft:#fecaca;--station-light:#fee2e2;--station-text:#991b1b}
+html[data-estacion-color="orange"]{--station-accent:#ea580c;--station-deep:#9a3412;--station-soft:#fed7aa;--station-light:#ffedd5;--station-text:#9a3412}
+html[data-estacion-color="pink"]{--station-accent:#db2777;--station-deep:#9d174d;--station-soft:#fbcfe8;--station-light:#fce7f3;--station-text:#9d174d}
+html[data-estacion-color="teal"]{--station-accent:#0d9488;--station-deep:#115e59;--station-soft:#99f6e4;--station-light:#ccfbf1;--station-text:#115e59}
+html[data-estacion-color]:not([data-estacion-color="green"]) #add-business,
+html[data-estacion-color]:not([data-estacion-color="green"]) #save-business,
+html[data-estacion-color]:not([data-estacion-color="green"]) .filter-btn.active,
+html[data-estacion-color]:not([data-estacion-color="green"]) .bottom-nav button[aria-current="page"],
+html[data-estacion-color]:not([data-estacion-color="green"]) #realizar-corte,
+html[data-estacion-color]:not([data-estacion-color="green"]) #mark-all-paid{background:var(--station-accent);border-color:var(--station-accent);color:#fff}
+html[data-estacion-color]:not([data-estacion-color="green"]) .monthly-card{background:linear-gradient(135deg,var(--station-deep),#1e293b);border-color:var(--station-accent)}
+html[data-estacion-color]:not([data-estacion-color="green"]) .monthly-card h2{color:#fff}
+html[data-estacion-color]:not([data-estacion-color="green"]) .monthly-card small{color:var(--station-soft)}
+html[data-estacion-color]:not([data-estacion-color="green"]) .station-theme-switch[aria-checked="true"]{background:var(--station-accent)}
+html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color="green"]) .monthly-card{background:linear-gradient(135deg,var(--station-light),#fff);border-color:var(--station-soft)}
+html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color="green"]) .monthly-card h2,
+html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color="green"]) .monthly-card small{color:var(--station-text)}
