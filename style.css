@@ -468,3 +468,14 @@ html[data-estacion-color]:not([data-estacion-color="green"]) .station-theme-swit
 html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color="green"]) .monthly-card{background:linear-gradient(135deg,var(--station-light),#fff);border-color:var(--station-soft)}
 html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color="green"]) .monthly-card h2,
 html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color="green"]) .monthly-card small{color:var(--station-text)}
+
+/* Arrastrar tarjetas de negocios */
+.business-drag-handle{flex:0 0 30px;width:30px;min-width:30px;height:44px;padding:0;border:0;border-radius:9px;background:rgba(148,163,184,.13);color:inherit;font-size:21px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab}
+.business-drag-handle:active{cursor:grabbing}
+.business-drag-handle:focus{outline:none}
+.business-drag-handle:focus-visible{outline:2px solid var(--station-accent,#22c55e)}
+.business-floating-ghost{position:fixed!important;z-index:9999!important;pointer-events:none!important;margin:0!important;display:flex!important;align-items:center;gap:12px;background:#1e293b;opacity:.98;box-shadow:0 14px 38px #0006;outline:2px solid var(--station-accent,#22c55e);border-radius:16px!important;will-change:transform}
+html[data-estacion-theme="light"] .business-floating-ghost{background:#fff}
+.business-drag-placeholder{opacity:.2!important;outline:2px dashed var(--station-accent,#22c55e)}
+.business-drag-placeholder>*{visibility:hidden}
+.payment-card,.payment-card .info,.payment-card .actions{-webkit-user-select:none;user-select:none}
