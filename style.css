@@ -470,7 +470,7 @@ html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color=
 html[data-estacion-theme="light"][data-estacion-color]:not([data-estacion-color="green"]) .monthly-card small{color:var(--station-text)}
 
 /* Arrastrar tarjetas de negocios */
-.business-drag-handle{flex:0 0 30px;width:30px;min-width:30px;height:44px;padding:0;border:0;border-radius:9px;background:rgba(148,163,184,.13);color:inherit;font-size:21px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab}
+.business-drag-handle{order:-1;flex:0 0 30px;width:30px;min-width:30px;height:44px;padding:0;border:0;border-radius:9px;background:rgba(148,163,184,.13);color:inherit;font-size:21px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab}
 .business-drag-handle:active{cursor:grabbing}
 .business-drag-handle:focus{outline:none}
 .business-drag-handle:focus-visible{outline:2px solid var(--station-accent,#22c55e)}
@@ -479,3 +479,7 @@ html[data-estacion-theme="light"] .business-floating-ghost{background:#fff}
 .business-drag-placeholder{opacity:.2!important;outline:2px dashed var(--station-accent,#22c55e)}
 .business-drag-placeholder>*{visibility:hidden}
 .payment-card,.payment-card .info,.payment-card .actions{-webkit-user-select:none;user-select:none}
+
+/* El control para mover queda siempre al extremo izquierdo */
+.payment-card{position:relative}
+.payment-card>.business-drag-handle{order:-1;flex-shrink:0;margin-left:-7px;margin-right:-4px}
