@@ -169,6 +169,7 @@ function crearTarjeta(nombre, monto, dia, estado, imagen) {
 
   card.innerHTML = `
     <img src="${imagen || "https://via.placeholder.com/50"}">
+    <button type="button" class="business-drag-handle" aria-label="Mover negocio" title="Mantén presionado para mover">☰</button>
     <div class="info">
       <h4>${nombre}</h4>
       <p>${dia} • $${monto}</p>
@@ -801,3 +802,93 @@ importFileInput?.addEventListener("change", async () => {
     importFileInput.value = "";
   }
 });
+
+
+/* ORDENAR NEGOCIOS CON MOVIMIENTO FLOTANTE Y DESPLAZAMIENTO SUAVE */
+let businessDrag=null;
+function businessDragEnabled(){
+ const search=document.getElementById('search-business');
+ const active=document.querySelector('.filter-btn.active');
+ return (!search||!search.value.trim())&&(!active||active.dataset.filter==='all')&&
+  [...paymentsSection.querySelectorAll('.payment-card')].every(el=>el.style.display!=='none');
+}
+function addBusinessDragHandle(card){
+ if(card.querySelector('.business-drag-handle'))return;
+ const btn=document.createElement('button');
+ btn.type='button';btn.className='business-drag-handle';btn.setAttribute('aria-label','Mover negocio');
+ btn.title='Mantén presionado para mover';btn.textContent='☰';
+ card.insertBefore(btn,card.firstChild);
+}
+function dragBusinessStart(event){
+ const handle=event.target.closest('.business-drag-handle');
+ if(!handle||businessDrag||!businessDragEnabled()||event.button!==0)return;
+ const row=handle.closest('.payment-card');if(!row)return;
+ event.preventDefault();handle.blur();
+ try{handle.setPointerCapture(event.pointerId)}catch(_){}
+ if(window.getSelection)window.getSelection().removeAllRanges();
+ const rect=row.getBoundingClientRect();
+ const ghost=row.cloneNode(true);ghost.classList.add('business-floating-ghost');
+ Object.assign(ghost.style,{width:rect.width+'px',height:rect.height+'px',left:rect.left+'px',top:'0px',transform:'translate3d(0,'+rect.top+'px,0) scale(1.015)'});
+ document.body.appendChild(ghost);row.classList.add('business-drag-placeholder');
+ businessDrag={pointerId:event.pointerId,handle,row,ghost,offsetY:event.clientY-rect.top,x:event.clientX,y:event.clientY,dirty:true,original:[...paymentsSection.querySelectorAll('.payment-card')],raf:0};
+ window.addEventListener('pointermove',dragBusinessMove,{passive:false});
+ window.addEventListener('pointerup',dragBusinessFinish);
+ window.addEventListener('pointercancel',dragBusinessFinish);
+ window.addEventListener('blur',dragBusinessCancel);
+ businessDrag.raf=requestAnimationFrame(dragBusinessFrame);
+}
+function dragBusinessMove(e){
+ const d=businessDrag;if(!d||e.pointerId!==d.pointerId)return;
+ e.preventDefault();d.x=e.clientX;d.y=e.clientY;d.dirty=true;
+}
+function dragBusinessShift(d){
+ const hit=document.elementFromPoint(d.x,d.y)?.closest('.payment-card');
+ if(!hit||hit===d.row||hit.parentElement!==paymentsSection)return;
+ const rect=hit.getBoundingClientRect(),before=d.y<rect.top+rect.height/2;
+ if(before&&d.row.nextElementSibling===hit)return;
+ if(!before&&hit.nextElementSibling===d.row)return;
+ const cards=[...paymentsSection.querySelectorAll('.payment-card')];
+ const y=new Map(cards.map(el=>[el,el.getBoundingClientRect().top]));
+ paymentsSection.insertBefore(d.row,before?hit:hit.nextSibling);
+ for(const el of cards){
+  if(el===d.row)continue;
+  const dy=y.get(el)-el.getBoundingClientRect().top;
+  if(Math.abs(dy)>1){
+   el.getAnimations().forEach(anim=>anim.cancel());
+   el.animate([{transform:'translate3d(0,'+dy+'px,0)'},{transform:'translate3d(0,0,0)'}],{duration:175,easing:'cubic-bezier(.2,.8,.2,1)'});
+  }
+ }
+}
+function dragBusinessFrame(){
+ const d=businessDrag;if(!d)return;
+ d.ghost.style.transform='translate3d(0,'+(d.y-d.offsetY)+'px,0) scale(1.015)';
+ if(d.dirty){d.dirty=false;dragBusinessShift(d)}
+ if(d.y<85&&window.scrollY>0){window.scrollBy(0,-9);d.dirty=true}
+ else if(d.y>innerHeight-95&&scrollY+innerHeight<document.documentElement.scrollHeight){window.scrollBy(0,9);d.dirty=true}
+ d.raf=requestAnimationFrame(dragBusinessFrame);
+}
+function dragBusinessCancel(){if(businessDrag)dragBusinessFinish({pointerId:businessDrag.pointerId,type:'pointercancel',preventDefault(){}})}
+function dragBusinessFinish(e){
+ const d=businessDrag;if(!d||e.pointerId!==d.pointerId)return;
+ e.preventDefault?.();cancelAnimationFrame(d.raf);
+ window.removeEventListener('pointermove',dragBusinessMove);
+ window.removeEventListener('pointerup',dragBusinessFinish);
+ window.removeEventListener('pointercancel',dragBusinessFinish);
+ window.removeEventListener('blur',dragBusinessCancel);
+ businessDrag=null;
+ try{if(d.handle.hasPointerCapture(d.pointerId))d.handle.releasePointerCapture(d.pointerId)}catch(_){}
+ d.handle.blur();if(window.getSelection)window.getSelection().removeAllRanges();
+ d.ghost.remove();d.row.classList.remove('business-drag-placeholder');
+ paymentsSection.querySelectorAll('.payment-card').forEach(el=>el.getAnimations().forEach(anim=>anim.cancel()));
+ if(e.type==='pointercancel'){
+  d.original.forEach(card=>paymentsSection.appendChild(card));
+  return;
+ }
+ const now=[...paymentsSection.querySelectorAll('.payment-card')];
+ if(now.some((el,i)=>el!==d.original[i])){
+  guardarEstados();
+  appMessage.textContent='Nuevo orden de negocios guardado.';
+ }
+}
+paymentsSection.addEventListener('pointerdown',dragBusinessStart);
+paymentsSection.querySelectorAll('.payment-card').forEach(addBusinessDragHandle);
