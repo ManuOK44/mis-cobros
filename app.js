@@ -168,8 +168,8 @@ function crearTarjeta(nombre, monto, dia, estado, imagen) {
   card.dataset.monto = monto;
 
   card.innerHTML = `
-    <img src="${imagen || "https://via.placeholder.com/50"}">
     <button type="button" class="business-drag-handle" aria-label="Mover negocio" title="Mantén presionado para mover">☰</button>
+    <img src="${imagen || "https://via.placeholder.com/50"}">
     <div class="info">
       <h4>${nombre}</h4>
       <p>${dia} • $${monto}</p>
